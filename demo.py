@@ -204,11 +204,11 @@ class Strip(NeoPixel):
         if self._auto_write:
             self.write()
 
-    @staticmethod
     def manage_color(self, color):
         if color == "random":
             color = Colors.full_randomize()
-        return color
+        return [round(i * self.brightness) for i in color]
+
 
     def __setitem__(self, key, value):
         super().__setitem__(key, self.manage_color(value))
