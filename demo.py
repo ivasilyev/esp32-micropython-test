@@ -4,8 +4,8 @@
 from time import sleep_ms
 from neopixel import NeoPixel
 from machine import Pin
-from random import randint
-
+from random import choice
+from gc import collect
 
 class Colors:
     # Inspired by https://github.com/adafruit/Adafruit_CircuitPython_LED_Animation
@@ -158,24 +158,14 @@ class Colors:
         return [i for i in dir(self) if i[0].isupper()]
 
     def randomize(self):
-        return Colors.__getattribute__(self, self.colors[randint(0, len(self.colors) - 1)])
+        return getattr(self, self.colors[choice(range(len(self.colors)))])
+
+    @staticmethod
+    def full_randomize():
+        return tuple([choice(range(256)) for i in "rgb"])
 
 
 class Color:
-    # BLACK = tuple([0, ] * 3)
-    # WHITE = tuple([255, ] * 3)
-    #
-    # RED = (255, 0, 0)
-    # GREEN = (0, 255, 0)
-    # BLUE = (0, 0, 255)
-    #
-    # YELLOW = (255, 150, 0)
-    # ORANGE = (255, 40, 0)
-    # TEAL = (0, 255, 120)
-    # CYAN = (0, 255, 255)
-    # PURPLE = (180, 0, 255)
-    # MAGENTA = (255, 0, 20)
-
     def __init__(self, red, green, blue):
         assert all(i < 256 for i in [red, green, blue])
 
@@ -195,20 +185,33 @@ class Color:
 
 
 class Strip(NeoPixel):
-    def __init__(self, pin: int, n: int, bpp=3, auto_write: bool = False):
+    def __init__(self, pin: int, n: int, bpp=3, brightness: float = 1., auto_write: bool = False):
         # View the super class source:
         # https://github.com/micropython/micropython/blob/master/ports/esp32/modules/neopixel.py
         super().__init__(pin=Pin(pin), n=n, bpp=bpp)
         self.LED_PIN = pin
         self.PIXEL_COUNT = n
+        self.range = list(range(len(self)))
+        self.brightness = brightness
+        if self.brightness > 1.:
+            raise ValueError("The brightness coefficient cannot be greater than 1!")
         self._auto_write = auto_write
+
+    def disable_auto_write(self):
+        self._auto_write = False
 
     def _apply(self):
         if self._auto_write:
             self.write()
 
+    @staticmethod
+    def manage_color(self, color):
+        if color == "random":
+            color = Colors.full_randomize()
+        return color
+
     def __setitem__(self, key, value):
-        super().__setitem__(key, value)
+        super().__setitem__(key, self.manage_color(value))
         self._apply()
 
     def __len__(self):
@@ -229,7 +232,7 @@ class Strip(NeoPixel):
     def fill_except(self, color, idx: int):
         if idx > len(self):
             return
-        range_ = list(range(0, len(self)))
+        range_ = self.range.copy()
         range_.pop(idx)
         for i in range_:
             self[i] = color
@@ -237,43 +240,68 @@ class Strip(NeoPixel):
 
 
 class Animations:
+    # Based on: https://docs.micropython.org/en/latest/esp8266/tutorial/neopixel.html
     def __init__(self, strip: Strip):
         self._strip = strip
+        self._strip.disable_auto_write()
         self.colors = Colors()
+
+    @staticmethod
+    def pause(ms: int):
+        collect()
+        sleep_ms(ms)
+
+    def random_blink(self, color, background=Colors.BLACK, pause: int = 15):
+        self._strip.fill(background)
+        idx = choice(self._strip.range)
+        self._strip[idx] = color
+        self._strip.write()
+        self.pause(pause)
+        self._strip[idx] = background
 
     def bounce(self, color, pause: int = 60):
         for i in range(4 * len(self._strip)):
-            for j in range(len(self._strip)):
+            for j in self._strip.range:
                 self._strip[j] = color
             if (i // len(self._strip)) % 2 == 0:
                 self._strip[i % len(self._strip)] = self.colors.BLACK
             else:
                 self._strip[len(self._strip) - 1 - (i % len(self._strip))] = self.colors.BLACK
             self._strip.write()
-            sleep_ms(pause)
+            self.pause(pause)
 
-    def bounce2(self, color, pause: int = 60):
-        for i in range(4 * len(self._strip)):
-            for j in range(len(self._strip)):
-                self._strip[j] = color
-            if (i // len(self._strip)) % 2 == 0:
-                self._strip[i % len(self._strip)] = self.colors.BLACK
-            else:
-                self._strip[len(self._strip) - 1 - (i % len(self._strip))] = self.colors.BLACK
+    def bounce2(self, color, background=Colors.BLACK, pause: int = 20):
+        self._strip.fill(background)
+        _range = self._strip.range + self._strip.range[:-1][::-1]
+        for idx in _range:
+            self._strip[idx] = color
             self._strip.write()
-            sleep_ms(pause)
+            self._strip[idx] = background
+            self.pause(pause)
 
-    def cycle(self, color, reverse: bool = False, pause: int = 25):
+    def cycle(self, color, pause: int = 25):
         for i in range(4 * len(self._strip)):
-            for j in range(len(self._strip)):
+            for j in self._strip.range:
                 self._strip[j] = self.colors.BLACK
             self._strip[i % len(self._strip)] = color
             self._strip.write()
-            sleep_ms(pause)
+            self.pause(pause)
+
+    def cycle2(self, color, background=Colors.BLACK, reverse: bool = False, pause: int = 20):
+        if not reverse:
+            _range = self._strip.range
+        else:
+            _range = self._strip.range[::-1]
+        self._strip.fill(background)
+        for idx in _range:
+            self._strip[idx] = color
+            self._strip.write()
+            self._strip[idx] = background
+            self.pause(pause)
 
     def fade(self):
         for i in range(0, 4 * 256, 8):
-            for j in range(len(self._strip)):
+            for j in self._strip.range:
                 if (i // 256) % 2 == 0:
                     val = i & 0xff
                 else:
@@ -281,6 +309,24 @@ class Animations:
                 self._strip[j] = (val, 0, 0)
             self._strip.write()
 
+    def fade2(self, color, period: int = 500):
+        brightest = max(color)
+        darken_speed = brightest // period
+        while period > 0 and sum(color) > 0:
+            color = [i - 1 if i > 0 else 0 for i in color]
+            self._strip.fill(color)
+            self._strip.write()
+            period -= 1
+
     def shutdown(self):
         self._strip.fill(self.colors.BLACK)
         self._strip.write()
+
+    def animate(self, func, *args, **kwargs):
+        try:
+            while True:
+                func(*args, **kwargs)
+        except Exception:
+            pass
+        finally:
+            self.shutdown()
