@@ -7,6 +7,7 @@ from machine import Pin
 from random import choice
 from gc import collect
 
+
 class Colors:
     # Inspired by https://github.com/adafruit/Adafruit_CircuitPython_LED_Animation
     # and https://raw.githubusercontent.com/vaab/colour (see below)
@@ -154,25 +155,6 @@ class Colors:
     def __init__(self):
         self.colors = self.get_colors()
 
-    def get_colors(self):
-        return [i for i in dir(self) if i[0].isupper()]
-
-    def randomize(self):
-        return getattr(self, self.colors[choice(range(len(self.colors)))])
-
-    @staticmethod
-    def full_randomize():
-        return tuple([choice(range(256)) for i in "rgb"])
-
-
-class Color:
-    def __init__(self, red, green, blue):
-        assert all(i < 256 for i in [red, green, blue])
-
-    @staticmethod
-    def randomize():
-        dir(Color)
-
     @staticmethod
     def _convert_colors():
         # Only for use on the systems with `colour` package installed
@@ -182,6 +164,16 @@ class Color:
         for k in d.keys():
             name = d.get(k)[-1].upper()
             print("{} = {}".format(name, k))
+
+    def get_colors(self):
+        return [i for i in dir(self) if i[0].isupper()]
+
+    def randomize(self):
+        return getattr(self, self.colors[choice(range(len(self.colors)))])
+
+    @staticmethod
+    def full_randomize():
+        return tuple([choice(range(256)) for _ in "rgb"])
 
 
 class Strip(NeoPixel):
@@ -204,11 +196,17 @@ class Strip(NeoPixel):
         if self._auto_write:
             self.write()
 
+    @staticmethod
+    def validate_color(color):
+        color = [i if i > 0 else 0 for i in color]
+        color = [i if i < 256 else 255 for i in color]
+        return color
+
     def manage_color(self, color):
         if color == "random":
             color = Colors.full_randomize()
-        return [round(i * self.brightness) for i in color]
-
+        color = [round(i * self.brightness) for i in color]
+        return self.validate_color(color)
 
     def __setitem__(self, key, value):
         super().__setitem__(key, self.manage_color(value))
