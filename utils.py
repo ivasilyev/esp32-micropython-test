@@ -4,6 +4,13 @@
 
 class Utils:
     @staticmethod
+    def load_string(file: str):
+        with open(file=file, mode="r", encoding="utf-8") as f:
+            s = f.read()
+            f.close()
+        return s
+
+    @staticmethod
     def read_cfg(cfg):
         from json import load
         with open(file=cfg, mode="r", encoding="utf-8") as f:
