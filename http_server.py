@@ -14,11 +14,17 @@ class HTTPServer:
         self._html_template = Utils.load_string("index.html")
         print("Listening on: {}".format(self.addr))
 
+    def render(self):
+        # I miss React ;_;
+        return self._html_template.format(
+            argument="An argument"
+        )
+
     def response(self):
         connection, self.addr = self.socket.accept()
         print('client connected from', self.addr)
         request = connection.recv(1024)
-        response = self._html_template
+        response = self.render()
         connection.send('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
         connection.send(response)
         connection.close()
