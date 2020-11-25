@@ -26,12 +26,16 @@ p {
 .button {
     display: inline-block;
     color: var(--color-cream-common);
+    border: 2px solid #3d4649;
     background-color: #3d4649;
-    border: none;
     border-radius: 12px;
     padding: 16px 40px;
     text-decoration: none;
     font-size: 30px;
     margin: 2px;
     cursor: pointer;
+}
+
+.button:disabled {
+    background-color: rgba(123, 144, 149, 0.82);
 }
