@@ -1,0 +1,37 @@
+body {
+    --main-font-size: calc(10px + 2vmin);
+    --color-cream-common: #ffffe9;
+    --color-steel-common: #7b9095;
+    min-height: 100vh;
+    background-color: var(--color-steel-common);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: var(--main-font-size);
+    font-family: Helvetica Arial Ubuntu sans-serif;
+}
+
+h1 {
+    color: #e8eced;
+    padding: 2vh;
+}
+
+p {
+    font-size: 1.5rem;
+}
+
+.button {
+    display: inline-block;
+    color: var(--color-cream-common);
+    background-color: #3d4649;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 40px;
+    text-decoration: none;
+    font-size: 30px;
+    margin: 2px;
+    cursor: pointer;
+}

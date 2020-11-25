@@ -12,13 +12,14 @@ class HTTPServer:
         self.socket.bind(self.addr)
         self.socket.listen(1)
         self._html_template = Utils.load_string("index.html")
+        self._css_template = Utils.load_string("styles.css")
         print("Listening on: {}".format(self.addr))
 
     def render(self):
         # I miss React ;_;
         return self._html_template.format(
-            argument="An argument"
-        )
+            BUTTON="A button"
+        ).replace("<style></style>", "<style>" + self._css_template + "</style>")
 
     def response(self):
         connection, self.addr = self.socket.accept()
