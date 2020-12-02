@@ -32,16 +32,16 @@ class Utils:
 
     @staticmethod
     def rm(s):
-        import os
+        import uos
         try:
-            _ = os.stat(s)[0]
+            _ = uos.stat(s)[0]
             try:
-                os.remove(s)  # A file
+                uos.remove(s)  # A file
             except OSError:  # A folder
-                for i in os.listdir(s):
+                for i in uos.listdir(s):
                     s_ = "{}/{}".format(s, i)
                     Utils.rm(s_)
-                os.rmdir(s)
+                uos.rmdir(s)
         except OSError:
             print("Not found: '{}'".format(s))
 
@@ -52,3 +52,11 @@ class Utils:
                  'pyproject.toml', 'requirements.txt']
         for j in _JUNK:
             Utils.rm("/lib/{}".format(j))
+
+    @staticmethod
+    def timeit(func, run_number: int = 1, *args, **kwargs):
+        import utime
+        start = utime.ticks_us()
+        for i in range(run_number):
+            _ = func(*args, **kwargs)
+        return utime.ticks_diff(utime.ticks_us(), start)
