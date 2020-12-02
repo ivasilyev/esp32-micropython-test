@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from time import sleep_ms
+from utime import sleep_ms
 from neopixel import NeoPixel
 from machine import Pin
 from random import choice
@@ -185,9 +185,12 @@ class Strip(NeoPixel):
         self.PIXEL_COUNT = n
         self.range = list(range(len(self)))
         self.brightness = brightness
+        self._auto_write = auto_write
+        self.validate()
+
+    def validate(self):
         if self.brightness > 1.:
             raise ValueError("The brightness coefficient cannot be greater than 1!")
-        self._auto_write = auto_write
 
     def disable_auto_write(self):
         self._auto_write = False
@@ -222,6 +225,15 @@ class Strip(NeoPixel):
         # if not isinstance(color, Color):
         #     color = Color(*color)
         super().fill(color)
+        self._apply()
+
+    def fill2(self, color):
+        # Will this run faster?
+        _ = list(map(lambda x: self.__setitem__(x, color), self.range))
+        self._apply()
+
+    def fill3(self, color):
+        _ = [self.__setitem__(i, color) for i in self.range]
         self._apply()
 
     def shutdown(self):
