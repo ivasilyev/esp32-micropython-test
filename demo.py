@@ -8,9 +8,7 @@ from random import choice
 from gc import collect
 
 
-class Colors:
-    # Inspired by https://github.com/adafruit/Adafruit_CircuitPython_LED_Animation
-    # and https://raw.githubusercontent.com/vaab/colour (see below)
+class Color(tuple):
     BLACK = (0, 0, 0)
     NAVYBLUE = (0, 0, 128)
     DARKBLUE = (0, 0, 139)
@@ -152,8 +150,40 @@ class Colors:
     IVORY = (255, 255, 240)
     WHITE = (255, 255, 255)
 
+
+class ColorSet(set):
+    KNOWN = [i for i in dir(Color) if i[0].isupper()]
+    RAINBOW = (Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.PURPLE)
+
+
+class ColorIterator:
+    def __init__(self, color_set):
+        self._color_set = color_set
+        self.current = 0
+
+    def __len__(self):
+        return len(self._color_set)
+
+    def __iter__(self):
+        return self._color_set[self.current]
+
+    def __next__(self):
+        out = self.current
+        self.current += 1
+        if self.current >= self.__len__():
+            self.current = 0
+        return self._color_set[out]
+
+    def __getitem__(self, idx):
+        return self._color_set[idx]
+
+
+class ColorManager:
+    # Inspired by https://github.com/adafruit/Adafruit_CircuitPython_LED_Animation
+    # and https://raw.githubusercontent.com/vaab/colour (see below)
+
     def __init__(self):
-        self.colors = self.get_colors()
+        pass
 
     @staticmethod
     def _convert_colors():
@@ -165,14 +195,12 @@ class Colors:
             name = d.get(k)[-1].upper()
             print("{} = {}".format(name, k))
 
-    def get_colors(self):
-        return [i for i in dir(self) if i[0].isupper()]
-
-    def randomize(self):
-        return getattr(self, self.colors[choice(range(len(self.colors)))])
+    @staticmethod
+    def get_known_random_color():
+        return getattr(ColorSet, ColorSet.KNOWN[choice(range(len(ColorSet.KNOWN)))])
 
     @staticmethod
-    def full_randomize():
+    def get_random_color():
         return tuple([choice(range(256)) for _ in "rgb"])
 
 
@@ -205,14 +233,14 @@ class Strip(NeoPixel):
         color = [i if i < 256 else 255 for i in color]
         return color
 
-    def manage_color(self, color):
+    def _set_color(self, color):
         if color == "random":
-            color = Colors.full_randomize()
+            color = ColorManager.get_random_color()
         color = [round(i * self.brightness) for i in color]
         return self.validate_color(color)
 
     def __setitem__(self, key, value):
-        super().__setitem__(key, self.manage_color(value))
+        super().__setitem__(key, self._set_color(value))
         self._apply()
 
     def __len__(self):
@@ -228,7 +256,7 @@ class Strip(NeoPixel):
         self._apply()
 
     def shutdown(self):
-        self.fill(Colors.BLACK)
+        self.fill(Color.BLACK)
 
     def fill_except(self, color, idx: int):
         if idx > len(self):
@@ -245,33 +273,44 @@ class Animations:
     def __init__(self, strip: Strip):
         self._strip = strip
         self._strip.disable_auto_write()
-        self.colors = Colors()
 
     @staticmethod
     def pause(ms: int):
         collect()
         sleep_ms(ms)
 
-    def random_blink(self, color, background=Colors.BLACK, pause: int = 15):
+    def random_blink(self, colors, background=Color.BLACK, pause: int = 15, run_number: int = 1):
+        """
+        Blinks a random LED with the given colors
+        """
         self._strip.fill(background)
         idx = choice(self._strip.range)
-        self._strip[idx] = color
-        self._strip.write()
-        self.pause(pause)
-        self._strip[idx] = background
+        iterator = ColorIterator(colors)
+        counter = 0
+        mod = 1
+        if run_number < 0:  # An infinite run
+            run_number = 1
+            mod = 0
+        run_number = run_number * len(colors)
+        while counter < run_number:
+            counter += mod
+            self._strip[idx] = next(iterator)
+            self._strip.write()
+            self.pause(pause)
+            self._strip[idx] = background
 
     def bounce(self, color, pause: int = 60):
         for i in range(4 * len(self._strip)):
             for j in self._strip.range:
                 self._strip[j] = color
             if (i // len(self._strip)) % 2 == 0:
-                self._strip[i % len(self._strip)] = self.colors.BLACK
+                self._strip[i % len(self._strip)] = Color.BLACK
             else:
-                self._strip[len(self._strip) - 1 - (i % len(self._strip))] = self.colors.BLACK
+                self._strip[len(self._strip) - 1 - (i % len(self._strip))] = Color.BLACK
             self._strip.write()
             self.pause(pause)
 
-    def bounce2(self, color, background=Colors.BLACK, pause: int = 20):
+    def bounce2(self, color, background=Color.BLACK, pause: int = 20):
         self._strip.fill(background)
         _range = self._strip.range + self._strip.range[:-1][::-1]
         for idx in _range:
@@ -283,12 +322,12 @@ class Animations:
     def cycle(self, color, pause: int = 25):
         for i in range(4 * len(self._strip)):
             for j in self._strip.range:
-                self._strip[j] = self.colors.BLACK
+                self._strip[j] = Color.BLACK
             self._strip[i % len(self._strip)] = color
             self._strip.write()
             self.pause(pause)
 
-    def cycle2(self, color, background=Colors.BLACK, reverse: bool = False, pause: int = 20):
+    def cycle2(self, color, background=Color.BLACK, reverse: bool = False, pause: int = 20):
         if not reverse:
             _range = self._strip.range
         else:
@@ -320,7 +359,7 @@ class Animations:
             period -= 1
 
     def shutdown(self):
-        self._strip.fill(self.colors.BLACK)
+        self._strip.fill(Color.BLACK)
         self._strip.write()
 
     def animate(self, func, *args, **kwargs):
