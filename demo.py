@@ -224,16 +224,7 @@ class Strip(NeoPixel):
     def fill(self, color):
         # if not isinstance(color, Color):
         #     color = Color(*color)
-        super().fill(color)
-        self._apply()
-
-    def fill2(self, color):
-        # Will this run faster?
         _ = list(map(lambda x: self.__setitem__(x, color), self.range))
-        self._apply()
-
-    def fill3(self, color):
-        _ = [self.__setitem__(i, color) for i in self.range]
         self._apply()
 
     def shutdown(self):
