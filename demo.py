@@ -212,6 +212,7 @@ class Strip(NeoPixel):
         self.LED_PIN = pin
         self.PIXEL_COUNT = n
         self.range = list(range(len(self)))
+        self._range_backup = self.range.copy()
         self.brightness = brightness
         self._auto_write = auto_write
         self.validate()
@@ -249,10 +250,12 @@ class Strip(NeoPixel):
     def __repr__(self):
         return "LED Strip object with {} pixels on pin {}".format(self.PIXEL_COUNT, self.LED_PIN)
 
-    def fill(self, color):
+    def fill(self, color, range_=()):
         # if not isinstance(color, Color):
         #     color = Color(*color)
-        _ = list(map(lambda x: self.__setitem__(x, color), self.range))
+        if len(range_) == 0:
+            range_ = self.range
+        _ = list(map(lambda x: self.__setitem__(x, color), range_))
         self._apply()
 
     def shutdown(self):
@@ -263,9 +266,20 @@ class Strip(NeoPixel):
             return
         range_ = self.range.copy()
         range_.pop(idx)
-        for i in range_:
-            self[i] = color
+        self.fill(color, range_)
         self._apply()
+
+    def flip_order(self):
+        self.range = self.range[::-1]
+        collect()
+
+    def loop_order(self):
+        self.range = self.range + self.range[:-1][::-1]
+        collect()
+
+    def restore_order(self):
+        self.range = self._range_backup.copy()
+        collect()
 
 
 class Animations:
