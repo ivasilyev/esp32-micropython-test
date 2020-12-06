@@ -203,6 +203,22 @@ class ColorManager:
     def get_random_color():
         return tuple([choice(range(256)) for _ in "rgb"])
 
+    @staticmethod
+    def count_linspace(start, stop, count: int = 10):
+        start = float(start)
+        stop = float(stop)
+        delta = stop - start
+        step = delta / (count - 1)
+        out = [start, ]
+        for ex in range(1, count - 1):
+            out.append(round(start + (ex * step), 2))
+        out.append(stop)
+        return out
+
+    def mutate_color(self, start_color, stop_color, steps: int = 10):
+        linspaces = [self.count_linspace(i, j, steps) for i, j in zip(start_color, stop_color)]
+        return [[i[j] for i in linspaces] for j in range(steps)]
+
 
 class Strip(NeoPixel):
     def __init__(self, pin: int, n: int, bpp=3, brightness: float = 1., auto_write: bool = False):
