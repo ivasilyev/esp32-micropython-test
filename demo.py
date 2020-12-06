@@ -217,9 +217,21 @@ class ColorManager:
         out.append(stop)
         return out
 
-    def mutate_color(self, start_color, stop_color, steps: int = 10):
-        linspaces = [self.count_linspace(i, j, steps) for i, j in zip(start_color, stop_color)]
+    @staticmethod
+    def mutate_color(start_color, stop_color, steps: int = 10):
+        linspaces = [ColorManager.count_linspace(i, j, steps) for i, j in zip(start_color, stop_color)]
         return [[i[j] for i in linspaces] for j in range(steps)]
+
+    @staticmethod
+    def create_color_loop(color_2d_array, steps: int = 10):
+        out = []
+        previous = None
+        for color in color_2d_array:
+            if previous:
+                out.extend(ColorManager.mutate_color(previous, color, steps))
+            previous = color
+        out.extend(ColorManager.mutate_color(color_2d_array[-1], color_2d_array[0], steps))
+        return out
 
 
 class Strip(NeoPixel):
