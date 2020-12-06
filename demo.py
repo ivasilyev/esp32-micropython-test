@@ -7,6 +7,8 @@ from machine import Pin
 from random import choice
 from gc import collect
 
+BLK = (0, 0, 0)
+
 
 class Color(tuple):
     BLACK = (0, 0, 0)

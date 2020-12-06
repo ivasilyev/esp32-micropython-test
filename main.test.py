@@ -1,10 +1,6 @@
-from demo import Strip, Animations, ColorSet, ColorIterator
-strip = Strip(17, 16, brightness=0.1, auto_write=True)
-strip.fill([199,199,199])
-strip.fill([0,0,0])
+from color_maps import BoilerPlate as ColorMap
+from demo import Strip, Animations
 
+strip = Strip(17, 16, brightness=1, auto_write=True)
 animations = Animations(strip)
-animations.random_blink(colors=ColorSet.RAINBOW, pause=10)
-animations.animate(animations.random_blink, colors=ColorSet.RAINBOW, pause=100)
-
-
+animations.animate(animations.cycle2, colors=ColorMap.jet, pause=100)
