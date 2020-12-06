@@ -284,31 +284,43 @@ class Strip(NeoPixel):
 
 class Animations:
     # Based on: https://docs.micropython.org/en/latest/esp8266/tutorial/neopixel.html
-    def __init__(self, strip: Strip):
+    def __init__(self, strip: Strip, clear: bool = True):
         self._strip = strip
         self._strip.disable_auto_write()
+        self.is_clear = clear
 
     @staticmethod
     def pause(ms: int):
         collect()
         sleep_ms(ms)
 
-    def random_blink(self, colors, background=Color.BLACK, pause: int = 15, run_number: int = 1):
+    def blink_single(self, colors, idx, background=Color.BLACK, pause: int = 15):
+        """
+        Blinks a certain LED with the given color
+        """
+        for color in colors:
+            self._strip[idx] = color
+            self._strip.write()
+            self.pause(pause)
+            self._strip[idx] = background
+
+    def blink_all(self, colors, background=Color.BLACK, pause: int = 15):
+        """
+        Blinks the whole strip with the given colors
+        """
+        for color in colors:
+            self._strip.fill(background)
+            self._strip.fill(color)
+            self._strip.write()
+            self.pause(pause)
+
+    def random_blink(self, colors, background=Color.BLACK, pause: int = 15):
         """
         Blinks a random LED with the given colors
         """
-        self._strip.fill(background)
         idx = choice(self._strip.range)
-        iterator = ColorIterator(colors)
-        counter = 0
-        mod = 1
-        if run_number < 0:  # An infinite run
-            run_number = 1
-            mod = 0
-        run_number = run_number * len(colors)
-        while counter < run_number:
-            counter += mod
-            self._strip[idx] = next(iterator)
+        for color in colors:
+            self._strip[idx] = color
             self._strip.write()
             self.pause(pause)
             self._strip[idx] = background
@@ -324,14 +336,14 @@ class Animations:
             self._strip.write()
             self.pause(pause)
 
-    def bounce2(self, color, background=Color.BLACK, pause: int = 20):
-        self._strip.fill(background)
+    def bounce2(self, colors, background=Color.BLACK, pause: int = 20):
         _range = self._strip.range + self._strip.range[:-1][::-1]
-        for idx in _range:
-            self._strip[idx] = color
-            self._strip.write()
-            self._strip[idx] = background
-            self.pause(pause)
+        for color in colors:
+            for idx in _range:
+                self._strip[idx] = color
+                self._strip.write()
+                self._strip[idx] = background
+                self.pause(pause)
 
     def cycle(self, color, pause: int = 25):
         for i in range(4 * len(self._strip)):
@@ -341,17 +353,19 @@ class Animations:
             self._strip.write()
             self.pause(pause)
 
-    def cycle2(self, color, background=Color.BLACK, reverse: bool = False, pause: int = 20):
+    def cycle2(self, colors, background=Color.BLACK, reverse: bool = False, pause: int = 20, clear: bool = False):
         if not reverse:
             _range = self._strip.range
         else:
             _range = self._strip.range[::-1]
-        self._strip.fill(background)
-        for idx in _range:
-            self._strip[idx] = color
-            self._strip.write()
-            self._strip[idx] = background
-            self.pause(pause)
+        if clear:
+            self._strip.fill(background)
+        for color in colors:
+            for idx in _range:
+                self._strip[idx] = color
+                self._strip.write()
+                self._strip[idx] = background
+                self.pause(pause)
 
     def fade(self):
         for i in range(0, 4 * 256, 8):
@@ -376,7 +390,12 @@ class Animations:
         self._strip.fill(Color.BLACK)
         self._strip.write()
 
+    def _clear(self):
+        if self.is_clear:
+            self.shutdown()
+
     def animate(self, func, *args, **kwargs):
+        self._clear()
         try:
             while True:
                 func(*args, **kwargs)
