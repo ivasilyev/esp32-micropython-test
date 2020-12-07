@@ -9,3 +9,5 @@ server = HTTPServer()
 
 _thread.start_new_thread(server.run, ())
 _thread.start_new_thread(animations.animate, (animations.cycle2, ColorManager.create_color_loop([Color.Red, Color.Orange, Color.Yellow, Color.Green, Color.Aqua, Color.Blue, Color.Purple], 8), Color.Black, False, 20, False))
+
+server.is_enabled = False
