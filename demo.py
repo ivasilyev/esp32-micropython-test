@@ -207,6 +207,8 @@ class ColorManager:
 
     @staticmethod
     def count_linspace(start, stop, count: int = 10):
+        if count == 2:
+            return [start, stop]
         start = float(start)
         stop = float(stop)
         delta = stop - start
@@ -228,7 +230,7 @@ class ColorManager:
         previous = None
         for color in color_2d_array:
             if previous:
-                out.extend(ColorManager.mutate_color(previous, color, steps))
+                out.extend(ColorManager.mutate_color(previous, color, steps)[:-1])
             previous = color
         out.extend(ColorManager.mutate_color(color_2d_array[-1], color_2d_array[0], steps))
         return out
@@ -366,13 +368,14 @@ class Animations:
             self._strip.write()
             self.pause(pause)
 
-    def bounce2(self, colors, background=Color.BLACK, pause: int = 20):
+    def bounce2(self, colors, background=Color.BLACK, pause: int = 20, always_lit: bool = False):
         _range = self._strip.range + self._strip.range[:-1][::-1]
         for color in colors:
             for idx in _range:
                 self._strip[idx] = color
                 self._strip.write()
-                self._strip[idx] = background
+                if not always_lit:
+                    self._strip[idx] = background
                 self.pause(pause)
 
     def cycle(self, color, pause: int = 25):
@@ -383,18 +386,17 @@ class Animations:
             self._strip.write()
             self.pause(pause)
 
-    def cycle2(self, colors, background=Color.BLACK, reverse: bool = False, pause: int = 20, clear: bool = False):
+    def cycle2(self, colors, background=Color.BLACK, reverse: bool = False, pause: int = 20, always_lit: bool = False):
         if not reverse:
             _range = self._strip.range
         else:
             _range = self._strip.range[::-1]
-        if clear:
-            self._strip.fill(background)
         for color in colors:
             for idx in _range:
                 self._strip[idx] = color
                 self._strip.write()
-                self._strip[idx] = background
+                if not always_lit:
+                    self._strip[idx] = background
                 self.pause(pause)
 
     def fade(self):
