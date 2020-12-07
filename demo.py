@@ -431,7 +431,7 @@ class Animations:
         try:
             while True:
                 func(*args, **kwargs)
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
         finally:
             self.shutdown()

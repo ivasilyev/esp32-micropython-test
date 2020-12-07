@@ -7,6 +7,7 @@ except ImportError:
 
 class HTTPServer:
     def __init__(self):
+        self.is_enabled = True
         self.addr = socket.getaddrinfo('0.0.0.0', 80)[0][-1]
         self.socket = socket.socket()
         self.socket.bind(self.addr)
@@ -17,9 +18,11 @@ class HTTPServer:
 
     def render(self):
         # I miss React ;_;
-        return self._html_template.format(
+        out = self._html_template.format(
             BUTTON="A button"
-        ).replace("<style></style>", "<style>" + self._css_template + "</style>")
+        )
+        out = out.replace("<style></style>", "<style>" + self._css_template + "</style>")
+        return out
 
     @staticmethod
     def is_request_contains(request: bytes, target: str):
@@ -50,3 +53,7 @@ class HTTPServer:
         connection.send('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
         connection.send(response)
         connection.close()
+
+    def run(self):
+        while self.is_enabled:
+            self.response()

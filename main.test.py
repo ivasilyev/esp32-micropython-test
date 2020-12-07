@@ -1,27 +1,11 @@
-import uasyncio as asyncio
+import _thread
+from http_server import HTTPServer
 from colors import BoilerPlate as Color
 from demo import Strip, Animations, ColorManager
 
 strip = Strip(17, 16, brightness=1, auto_write=True)
 animations = Animations(strip)
-# animations.animate(animations.cycle2, colors=ColorManager.create_color_loop([Color.Red, Color.Orange, Color.Yellow, Color.Green, Color.Aqua, Color.Blue, Color.Purple], 8), pause=10, always_lit=True)
+server = HTTPServer()
 
-
-
-async def coro_function1():
-    animations.cycle2(colors=ColorManager.create_color_loop([Color.Red, Color.Orange, Color.Yellow, Color.Green, Color.Aqua, Color.Blue, Color.Purple], 8), pause=10, always_lit=True)
-    return 1
-
-
-async def coro_function2():
-    animations.cycle2(colors=ColorManager.create_color_loop([Color.Red, Color.Aqua], 8), pause=10, always_lit=False)
-    return 2
-
-
-async def get():
-    return await coro_function1() + await coro_function2()
-
-loop = asyncio.get_event_loop()
-a = loop.create_task(get())
-# loop.run_until_complete(a)
-loop.run_forever()
+_thread.start_new_thread(server.run, ())
+_thread.start_new_thread(animations.animate, (animations.cycle2, ColorManager.create_color_loop([Color.Red, Color.Orange, Color.Yellow, Color.Green, Color.Aqua, Color.Blue, Color.Purple], 8), Color.Black, False, 20, False))
