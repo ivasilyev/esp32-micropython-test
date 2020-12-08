@@ -6,6 +6,8 @@ from neopixel import NeoPixel
 from machine import Pin
 from random import choice
 from gc import collect
+import _thread
+
 
 BLK = (0, 0, 0)
 
@@ -236,11 +238,17 @@ class ColorManager:
         return out
 
 
+class AnimationControllerThrowable(Exception):
+    def __init__(self, message: str = ""):
+        super().__init__(message)
+
+
 class Strip(NeoPixel):
     def __init__(self, pin: int, n: int, bpp=3, brightness: float = 1., auto_write: bool = False):
         # View the super class source:
         # https://github.com/micropython/micropython/blob/master/ports/esp32/modules/neopixel.py
         super().__init__(pin=Pin(pin), n=n, bpp=bpp)
+        self.is_enabled = True
         self.LED_PIN = pin
         self.PIXEL_COUNT = n
         self.range = list(range(len(self)))
@@ -248,6 +256,9 @@ class Strip(NeoPixel):
         self.brightness = brightness
         self._auto_write = auto_write
         self.validate()
+
+    def switch(self):
+        self.is_enabled = not self.is_enabled
 
     def validate(self):
         if self.brightness > 1.:
@@ -257,6 +268,8 @@ class Strip(NeoPixel):
         self._auto_write = False
 
     def _apply(self):
+        if not self.is_enabled:
+            raise AnimationControllerThrowable
         if self._auto_write:
             self.write()
 
@@ -435,3 +448,38 @@ class Animations:
             print(e)
         finally:
             self.shutdown()
+
+
+class AnimationController:
+    def __init__(self, strip: Strip):
+        self.is_enabled = True
+        self.is_changed = False
+        self._strip = strip
+        self._animations = Animations(self._strip)
+        self._current_animation = None
+        self._current_animation_args = []
+        self._current_animation_kwargs = dict()
+
+    def twitch(self):
+        self._strip.switch()
+        sleep_ms(10)
+        self._strip.switch()
+
+    def set_animation(self, animation_name: str, *args, **kwargs):
+        if animation_name not in dir(self._animations):
+            return
+        self._current_animation = getattr(self._animations, animation_name)
+        self._current_animation_args = args
+        self._current_animation_kwargs = kwargs
+        self.twitch()
+
+    def run(self):
+        while self.is_enabled:
+            if not self._current_animation:
+                sleep_ms(100)
+            else:
+                try:
+                    self._animations.animate(self._current_animation, *self._current_animation_args, **self._current_animation_kwargs)
+                    # _ = self._current_animation(*self._current_animation_args, **self._current_animation_kwargs)
+                except AnimationControllerThrowable as e:
+                    pass
