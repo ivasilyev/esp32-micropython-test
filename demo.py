@@ -296,15 +296,18 @@ class Strip(NeoPixel):
         return "LED Strip object with {} pixels on pin {}".format(self.PIXEL_COUNT, self.LED_PIN)
 
     def fill(self, color, range_=()):
-        # if not isinstance(color, Color):
-        #     color = Color(*color)
         if len(range_) == 0:
             range_ = self.range
         _ = list(map(lambda x: self.__setitem__(x, color), range_))
         self._apply()
 
-    def shutdown(self):
-        self.fill(Color.BLACK)
+    def reset(self):
+        self.is_enabled = False
+        sleep_ms(100)  # Otherwise the translator does not even notice that
+        self.is_enabled = True
+        self.fill(BLK, self._range_backup)
+        self.write()
+        collect()
 
     def fill_except(self, color, idx: int):
         if idx > len(self):
@@ -333,6 +336,9 @@ class Animations:
         self._strip = strip
         self._strip.disable_auto_write()
         self.is_clear = clear
+
+    def get_strip(self):
+        return self._strip
 
     @staticmethod
     def pause(ms: int):
@@ -431,55 +437,50 @@ class Animations:
             self._strip.write()
             period -= 1
 
-    def shutdown(self):
+    def blacken(self):
         self._strip.fill(Color.BLACK)
         self._strip.write()
 
     def _clear(self):
         if self.is_clear:
-            self.shutdown()
+            self.blacken()
 
-    def animate(self, func, *args, **kwargs):
+    def test_animation(self, func, *args, **kwargs):
         self._clear()
         try:
             while True:
                 func(*args, **kwargs)
         except Exception as e:
-            print(e)
+            raise e
         finally:
-            self.shutdown()
+            self.blacken()
 
 
 class AnimationController:
-    def __init__(self, strip: Strip):
-        self.is_enabled = True
-        self.is_changed = False
-        self._strip = strip
-        self._animations = Animations(self._strip)
+    def __init__(self, animations: Animations):
+        self.is_running = False
+        self._animations = animations
         self._current_animation = None
-        self._current_animation_args = []
+        self._current_animation_args = ()
         self._current_animation_kwargs = dict()
-
-    def twitch(self):
-        self._strip.switch()
-        sleep_ms(10)
-        self._strip.switch()
 
     def set_animation(self, animation_name: str, *args, **kwargs):
         if animation_name not in dir(self._animations):
-            return
+            raise ValueError("No such animation: '{}'".format(animation_name))
         self._current_animation = getattr(self._animations, animation_name)
         self._current_animation_args = args
         self._current_animation_kwargs = kwargs
-        self.twitch()
+        self._animations.get_strip().reset()
+        self.is_running = True
+        collect()
 
     def run(self):
-        while self.is_enabled:
-            if not self._current_animation:
+        while True:
+            while not self._current_animation or not self.is_running:
                 sleep_ms(100)
-            else:
-                try:
-                    self._animations.animate(self._current_animation, *self._current_animation_args, **self._current_animation_kwargs)
-                    # _ = self._current_animation(*self._current_animation_args, **self._current_animation_kwargs)
-                except AnimationControllerThrowable as e:
-                    pass
+            try:
+                _ = self._current_animation(*self._current_animation_args,
+                                            **self._current_animation_kwargs)
+            except AnimationControllerThrowable as e:
+                collect()
+                self.is_running = False
