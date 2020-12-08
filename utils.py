@@ -60,3 +60,15 @@ class Utils:
         for i in range(run_number):
             _ = func(*args, **kwargs)
         return utime.ticks_diff(utime.ticks_us(), start)
+
+    @staticmethod
+    def soft_reset():
+        # From http://docs.micropython.org/en/v1.8.6/wipy/wipy/tutorial/reset.html
+        import sys
+        sys.exit()
+
+    @staticmethod
+    def hard_reset():
+        import machine
+        machine.reset()
+
