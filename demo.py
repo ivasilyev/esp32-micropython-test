@@ -256,9 +256,7 @@ class Strip(NeoPixel):
         self.brightness = brightness
         self._auto_write = auto_write
         self.validate()
-
-    def switch(self):
-        self.is_enabled = not self.is_enabled
+        self.reset()
 
     def validate(self):
         if self.brightness > 1.:

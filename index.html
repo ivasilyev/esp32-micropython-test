@@ -12,11 +12,40 @@
             <h1>ESP Web Server</h1>
         </div>
         <div>
-            <p>
-                <a href="/?nowhere">
-                    <button class="button">{BUTTON}</button>
-                </a>
-            </p>
+            <a href="/?nowhere">
+                <button class="button">{BUTTON}</button>
+            </a>
+        </div>
+        <div>
+            <div>
+                <p>Select colors</p>
+                <div>
+                    <input type="color" id="1" name="1st"
+                           value="#f5647f">
+                    <label for="1">First</label>
+                </div>
+                <div>
+                    <input type="color" id="2" name="2nd"
+                            value="#7cc4e4">
+                    <label for="2">Second</label>
+                </div>
+            </div>
+
+            <div>
+                <p>Select animation</p>
+                <form action="" method="post">
+                    <select name="animation">
+                        <option selected disabled>Select animation</option>
+                        <option value="random_blink">random_blink</option>
+                        <option value="bounce2">bounce2</option>
+                        <option value="cycle2">cycle2</option>
+                    </select>
+                </form>
+            </div>
+            <div>
+                <input type="submit" value="Set">
+            </div>
+
 
         </div>
     </body>
