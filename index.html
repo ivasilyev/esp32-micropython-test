@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="https://ucygetfavicon.appspot.com/http://labaq.com">
         <title>The ESP32 web server test page</title>
-        <link rel="icon" href="data:,">
-        <style></style>
+        <meta name="theme-color" content="#000000" />
+        <meta
+          name="description"
+          content="The ESP32 web server test page"
+        />
+        <link rel="stylesheet" type="text/css" href="./styles.css">
+        <script src="./main.js"></script>
     </head>
 
     <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
         <div>
             <h1>ESP Web Server</h1>
         </div>
@@ -17,36 +24,31 @@
             </a>
         </div>
         <div>
-            <div>
-                <p>Select colors</p>
+            <form id="contact" name="contact" onsubmit="return validateFormOnSubmit(this)" action="" method="post">
                 <div>
-                    <input type="color" id="1" name="1st"
-                           value="#f5647f">
-                    <label for="1">First</label>
+                    <p>Select colors</p>
+                    <div>
+                        <label for="color_0">First</label>
+                        <input type="color" id="color_0" name="Color 1"
+                               value="#f5647f">
+                        <label for="color_1">Second</label>
+                        <input type="color" id="color_1" name="Color 2"
+                                value="#7cc4e4">
+                    </div>
                 </div>
                 <div>
-                    <input type="color" id="2" name="2nd"
-                            value="#7cc4e4">
-                    <label for="2">Second</label>
-                </div>
-            </div>
-
-            <div>
-                <p>Select animation</p>
-                <form action="" method="post">
-                    <select name="animation">
-                        <option selected disabled>Select animation</option>
+                    <label for="animation_select">Select an animation:</label>
+                    <select id="animation_select">
+                        <option selected disabled>Select</option>
                         <option value="random_blink">random_blink</option>
                         <option value="bounce2">bounce2</option>
                         <option value="cycle2">cycle2</option>
                     </select>
-                </form>
-            </div>
-            <div>
-                <input type="submit" value="Set">
-            </div>
-
-
+                </div>
+                <div>
+                    <button type="submit" name="submit" id="submit">Set</button>
+                </div>
+            </form>
         </div>
     </body>
 </html>

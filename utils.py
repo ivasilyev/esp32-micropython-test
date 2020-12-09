@@ -35,7 +35,10 @@ class Utils:
 
     @staticmethod
     def rm(s):
-        import uos as os
+        try:
+            import uos as os
+        except ImportError:
+            import os
         try:
             _ = os.stat(s)[0]
             try:
