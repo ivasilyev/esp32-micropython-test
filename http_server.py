@@ -64,6 +64,9 @@ class HTTPServer:
         )
         out = out.replace('<link rel="stylesheet" type="text/css" href="./styles.css">',
                           "<style>" + self._css_template + "</style>")
+        out = out.replace('<script src="./main.js"></script>',
+                          "<script>" + self._js_template + "</script>")
+
         return out
 
     @staticmethod
@@ -127,5 +130,7 @@ class HTTPServer:
         try:
             while self.is_enabled:
                 self.response()
+                collect()
         finally:
             self.socket.close()
+            collect()
