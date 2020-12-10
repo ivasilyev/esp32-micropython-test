@@ -99,3 +99,7 @@ class Utils:
         for replacement in replacements:
             s = s.replace(*replacement)
         return s
+
+    @staticmethod
+    def convert_hex_to_rgb(s: str):
+        return tuple(int(s.strip("#")[i:i+2], 16) for i in (0, 2, 4))

@@ -7,14 +7,17 @@ from utime import sleep
 from utils import Utils
 from gc import collect
 from json import loads
+from demo import AnimationController, ColorManager
+
 
 class HTTPServer:
     HOST = "0.0.0.0"
     PORT = 80
     TYPE_HTML = "text/html; charset=utf-8"
 
-    def __init__(self):
+    def __init__(self, controller: AnimationController):
         self.is_enabled = True
+        self._controller = controller
         self.addr = socket.getaddrinfo(self.HOST, self.PORT)[0][-1]
         self.socket = None
         self.routes = dict()
@@ -71,12 +74,16 @@ class HTTPServer:
 
     @staticmethod
     def send_response(conn, status="200 OK", type_="text/plain; charset=utf-8", payload=""):
-        payload = payload.encode("utf-8")
         header_lines = ["HTTP/1.1 {}".format(status), "Server: ESP32", "Connection: close",
                         "Content-Type: {}".format(type_), "Content-Length: {}".format(len(payload)),
                         "", ""]
-        conn.send("\r\n".join(header_lines).encode("utf-8"))
-        conn.send(payload)
+
+        for line in header_lines + payload.split("\n"):
+            line = line.strip() + "\r\n"
+            try:
+                conn.send(line.encode("utf-8"))
+            except OSError:
+                Utils.hard_reset()
 
     def handle_json(self, j):
         try:
@@ -85,7 +92,9 @@ class HTTPServer:
             return
         a = d["animation_name"]
         c = list({i: d["colors"][i] for i in sorted(d["colors"].keys())}.values())
+        c = [Utils.convert_hex_to_rgb(i) for i in c]
         print(a, c)
+        self._controller.set_animation(a, colors=ColorManager.create_color_loop(c))
 
     def handle_http(self, conn):
         data = b""

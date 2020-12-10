@@ -463,6 +463,7 @@ class AnimationController:
         self._current_animation_kwargs = dict()
 
     def set_animation(self, animation_name: str, *args, **kwargs):
+        print("Change animation to:", animation_name, args, kwargs)
         if animation_name not in dir(self._animations):
             raise ValueError("No such animation: '{}'".format(animation_name))
         self._current_animation = getattr(self._animations, animation_name)
