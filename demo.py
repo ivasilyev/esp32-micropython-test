@@ -224,7 +224,7 @@ class ColorManager:
     @staticmethod
     def mutate_color(start_color, stop_color, steps: int = 10):
         linspaces = [ColorManager.count_linspace(i, j, steps) for i, j in zip(start_color, stop_color)]
-        return [[i[j] for i in linspaces] for j in range(steps)]
+        return [tuple([i[j] for i in linspaces]) for j in range(steps)]
 
     @staticmethod
     def create_color_loop(color_2d_array, steps: int = 10):
