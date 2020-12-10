@@ -78,3 +78,24 @@ class Utils:
         import machine
         machine.reset()
 
+    @staticmethod
+    def parse_percent_encoding(s: str):
+        # See https://en.wikipedia.org/wiki/Percent-encoding
+        pasted_1 = """! 	# 	$ 	% 	& 	' 	( 	) 	* 	+ 	, 	/ 	: 	; 	= 	? 	@ 	[ 	]
+        %21 	%23 	%24 	%25 	%26 	%27 	%28 	%29 	%2A 	%2B 	%2C 	%2F 	%3A 	%3B 	%3D 	%3F 	%40 	%5B 	%5D
+        """
+        pasted_2 = """" 	% 	- 	. 	< 	> 	\ 	^ 	_ 	` 	{ 	| 	} 	~ 	£ 	円
+        %22 	%25 	%2D 	%2E 	%3C 	%3E 	%5C 	%5E 	%5F 	%60 	%7B 	%7C 	%7D 	%7E 	%C2%A3 	%E5%86%86
+        """
+        replacements = []
+        for pasted in (pasted_1, pasted_2):
+            chars, percents = [[l_ for l_ in [k.strip() for k in j.split(" ")] if len(l_) > 0] for j in [i.strip() for i in pasted.split("\n")] if len(j) > 0]
+            for char, percent in zip(chars, percents):
+                replacements.append((percent, char))
+        replacements.extend([(i.strip(), "\r\n") for i in "%0A or %0D or %0D%0A".split("or")])
+        replacements.append(("%20", " "))
+        replacements.sort(key=lambda x: len(x[0]), reverse=True)
+        # s = '%7B%22colors%22%3A%7B%22color_0%22%3A%22%23f5647f%22%2C%22color_1%22%3A%22%237cc4e4%22%7D%2C%22animation_name%22%3A%22Select%22%7D'
+        for replacement in replacements:
+            s = s.replace(*replacement)
+        return s

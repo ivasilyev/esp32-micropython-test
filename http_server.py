@@ -6,7 +6,7 @@ except ImportError:
 from utime import sleep
 from utils import Utils
 from gc import collect
-
+from json import loads
 
 class HTTPServer:
     HOST = "0.0.0.0"
@@ -78,6 +78,15 @@ class HTTPServer:
         conn.send("\r\n".join(header_lines).encode("utf-8"))
         conn.send(payload)
 
+    def handle_json(self, j):
+        try:
+            d = loads(Utils.parse_percent_encoding(j))
+        except:
+            return
+        a = d["animation_name"]
+        c = list({i: d["colors"][i] for i in sorted(d["colors"].keys())}.values())
+        print(a, c)
+
     def handle_http(self, conn):
         data = b""
         while b"\r\n" not in data:
@@ -97,11 +106,16 @@ class HTTPServer:
                 address = string.split('?')[0]
                 params = dict(i.split('=') for i in string.split('?')[1].split('&'))
             if method != "GET":
-                self.send_response(conn, status="404 Not Found", payload="Page not found")
-                return
+                self.send_response(conn, status="404 Not Found", payload="404\r\nPage not found")
+                print("method")
+                print(udata)
+                # return
             if len(params) > 0:
+                print("params")
                 print(params)
                 # self.send_response(conn, type_=self.TYPE_HTML, payload=self.render())
+                if "data" in params.keys():
+                    self.handle_json(params["data"])
             self.send_response(conn, type_=self.TYPE_HTML, payload=self.render())
 
     def response(self):
