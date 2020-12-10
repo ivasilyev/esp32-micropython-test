@@ -443,7 +443,7 @@ class Animations:
         if self.is_clear:
             self.blacken()
 
-    def test_animation(self, func, *args, **kwargs):
+    def animate(self, func, *args, **kwargs):
         self._clear()
         try:
             while True:
@@ -458,19 +458,27 @@ class AnimationController:
     def __init__(self, animations: Animations):
         self.is_running = False
         self._animations = animations
+        self._strip = self._animations.get_strip()
         self._current_animation = None
         self._current_animation_args = ()
         self._current_animation_kwargs = dict()
+
+    def restart(self):
+        self.is_running = False
+        try:
+            self._strip.reset()
+        except AnimationControllerThrowable:
+            pass
 
     def set_animation(self, animation_name: str, *args, **kwargs):
         if animation_name not in dir(self._animations):
             print("No such animation: '{}'".format(animation_name))
             return
-        self._current_animation = getattr(self._animations, animation_name)
+        self._current_animation = animation_name
         self._current_animation_args = args
         self._current_animation_kwargs = kwargs
-        self._animations.get_strip().reset()
         self.is_running = True
+        sleep_ms(100)  # Same
         print("Change animation to:", animation_name, args, kwargs)
 
     def run(self):
@@ -478,8 +486,9 @@ class AnimationController:
             while not self._current_animation or not self.is_running:
                 sleep_ms(100)
             try:
-                _ = self._current_animation(*self._current_animation_args,
-                                            **self._current_animation_kwargs)
-            except AnimationControllerThrowable as e:
+                getattr(self._animations, self._current_animation)(
+                    *self._current_animation_args, **self._current_animation_kwargs)
+            except AnimationControllerThrowable:
                 collect()
-                self.is_running = False
+            except OSError:
+                self.restart()
