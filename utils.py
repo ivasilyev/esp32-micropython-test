@@ -31,7 +31,7 @@ class Utils:
             controller.connect(wlan_essid, wlan_password)
             while not controller.isconnected():
                 sleep(1)
-        print("Network connected, the config: {}".format(controller.ifconfig()))
+        print("Network connected, the configuration: {}".format(controller.ifconfig()))
 
     @staticmethod
     def rm(s):
@@ -95,7 +95,6 @@ class Utils:
         replacements.extend([(i.strip(), "\r\n") for i in "%0A or %0D or %0D%0A".split("or")])
         replacements.append(("%20", " "))
         replacements.sort(key=lambda x: len(x[0]), reverse=True)
-        # s = '%7B%22colors%22%3A%7B%22color_0%22%3A%22%23f5647f%22%2C%22color_1%22%3A%22%237cc4e4%22%7D%2C%22animation_name%22%3A%22Select%22%7D'
         for replacement in replacements:
             s = s.replace(*replacement)
         return s
