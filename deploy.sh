@@ -2,7 +2,6 @@
 
 # ampy --port COM5 --baud 115200 get "boot.py" "boot.py"
 for FILE in __init__.py main.py config.json utils.py demo.py http_server.py \
-  color_maps.py colors.py \
   index.html styles.css main.js
   do
     echo Copy ${FILE}

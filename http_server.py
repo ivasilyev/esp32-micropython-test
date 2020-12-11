@@ -1,14 +1,18 @@
-from utils import Utils
 try:
     import usocket as socket
 except ImportError:
     import socket
+try:
+    import urequests as requests
+except ImportError:
+    import requests
+
+
 from utime import sleep
-from utils import Utils
 from gc import collect
 from json import loads
+from utils import Utils
 from demo import AnimationController, ColorManager
-import _thread
 
 
 class HTTPServer:
@@ -102,7 +106,6 @@ class HTTPServer:
         params = str((animation, colors))
         print(params)
         self._controller.set_animation(animation, colors=colors)
-        # _ = getattr(self._controller._animations, a)(colors=cc)
 
     def handle_http(self, conn):
         data = b""
@@ -145,7 +148,6 @@ class HTTPServer:
             return
         try:
             self.handle_http(connection)
-            # _thread.start_new_thread(self.handle_http, (connection,))
         except:
             self.send_response(connection, "500 Internal Server Error", payload="Error")
             connection.close()
