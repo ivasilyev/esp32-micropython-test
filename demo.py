@@ -67,6 +67,10 @@ class ColorManager:
         out.extend(ColorManager.mutate_color(color_2d_array[-1], color_2d_array[0], steps))
         return out
 
+    @staticmethod
+    def convert_hex_to_rgb(s: str):
+        return tuple(int(s.strip("#")[i:i+2], 16) for i in (0, 2, 4))
+
 
 class AnimationControllerThrowable(Exception):
     def __init__(self, message: str = ""):
@@ -294,11 +298,11 @@ class AnimationController:
         self._current_animation_kwargs = dict()
 
     def restart(self):
-        self.is_running = False
         try:
             self._strip.reset()
         except AnimationControllerThrowable:
             pass
+        sleep_ms(150)
 
     def set_animation(self, animation_name: str, *args, **kwargs):
         if animation_name not in dir(self._animations):
@@ -307,8 +311,8 @@ class AnimationController:
         self._current_animation = animation_name
         self._current_animation_args = args
         self._current_animation_kwargs = kwargs
+        self.restart()
         self.is_running = True
-        sleep_ms(100)  # Same
         print("Change animation to:", animation_name, args, kwargs)
 
     def run(self):
