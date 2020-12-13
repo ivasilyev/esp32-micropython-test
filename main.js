@@ -1,7 +1,7 @@
 function validateFormOnSubmit() {
     const out = {
         "colors": {},
-        "animation_name": validate_animation(document.getElementById("animation_dropdown").value)
+        "animation": validate_animation(document.getElementById("animation_dropdown").value)
     };
     const _arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     _arr.forEach((n) => {

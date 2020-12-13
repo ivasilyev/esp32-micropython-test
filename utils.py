@@ -22,16 +22,16 @@ class Utils:
     def wlan_connect(wlan_essid, wlan_password, hostname: str = ""):
         from network import WLAN, STA_IF
         from utime import sleep
-        controller = WLAN(STA_IF)
-        if not controller.isconnected():
+        nic = WLAN(STA_IF)
+        if not nic.isconnected():
             print("Connecting to network: ...")
-            controller.active(True)
+            nic.active(True)
             if len(hostname) > 0:
-                controller.config(dhcp_hostname=hostname)
-            controller.connect(wlan_essid, wlan_password)
-            while not controller.isconnected():
+                nic.config(dhcp_hostname=hostname)
+            nic.connect(wlan_essid, wlan_password)
+            while not nic.isconnected():
                 sleep(1)
-        print("Network connected, the configuration: {}".format(controller.ifconfig()))
+        print("Network connected, the configuration: {}".format(nic.ifconfig()))
 
     @staticmethod
     def rm(s):
@@ -98,7 +98,3 @@ class Utils:
         for replacement in replacements:
             s = s.replace(*replacement)
         return s
-
-    @staticmethod
-    def convert_hex_to_rgb(s: str):
-        return tuple(int(s.strip("#")[i:i+2], 16) for i in (0, 2, 4))

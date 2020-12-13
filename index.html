@@ -27,31 +27,32 @@
             </a>
         </div>
         <div>
-            <form id="animation_form_id" name="animation_form_name"
-                  onsubmit="return validateFormOnSubmit()" action="#" method="POST">
-                <div>
-                    <p>Select colors</p>
+            <form id="animation_form_id" name="animation_form_name" action="" method="POST"
+                onsubmit="return validateFormOnSubmit()" >
+                <fieldset>
+                    <legend>Selecting elements</legend>
                     <div>
-                        <label for="color_0">First</label>
-                        <input type="color" id="color_0" name="picked_color"
-                               value="#f5647f">
-                        <label for="color_1">Second</label>
-                        <input type="color" id="color_1" name="picked_color"
-                                value="#7cc4e4">
+                        <p>Select colors</p>
+                        <div>
+                            <label for="color_0">First</label>
+                            <input type="color" id="color_0" name="" value="#f5647f">
+                            <label for="color_1">Second</label>
+                            <input type="color" id="color_1" name="" value="#7cc4e4">
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <label for="animation_dropdown">Select an animation:</label>
-                    <select id="animation_dropdown">
-                        <option selected disabled>Select</option>
-                        <option name="animation_name" value="random_blink">random_blink</option>
-                        <option name="animation_name" value="bounce2">bounce2</option>
-                        <option name="animation_name" value="cycle2">cycle2</option>
-                    </select>
-                </div>
-                <div>
-                    <button type="submit" name="submit" id="submit">Set</button>
-                </div>
+                    <div>
+                        <label for="animation_dropdown">Select an animation:</label>
+                        <select id="animation_dropdown" name="animation" >
+                            <option selected disabled>Select</option>
+                            <option value="random_blink">random_blink</option>
+                            <option value="bounce2">bounce2</option>
+                            <option value="cycle2">cycle2</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" name="submit" id="submit">Set</button>
+                    </div>
+                </fieldset>
             </form>
         </div>
     </body>

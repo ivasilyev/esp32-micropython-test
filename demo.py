@@ -302,17 +302,19 @@ class AnimationController:
             self._strip.reset()
         except AnimationControllerThrowable:
             pass
+        except Exception as e:
+            print("Animation restart problem:", e)
         sleep_ms(150)
 
     def set_animation(self, animation_name: str, *args, **kwargs):
         if animation_name not in dir(self._animations):
-            print("No such animation: '{}'".format(animation_name))
+            print("No such animation:", animation_name)
             return
         self._current_animation = animation_name
         self._current_animation_args = args
         self._current_animation_kwargs = kwargs
-        self.restart()
         self.is_running = True
+        self.restart()
         print("Change animation to:", animation_name, args, kwargs)
 
     def run(self):
@@ -324,5 +326,3 @@ class AnimationController:
                     *self._current_animation_args, **self._current_animation_kwargs)
             except AnimationControllerThrowable:
                 collect()
-            except OSError:
-                self.restart()
