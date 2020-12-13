@@ -171,6 +171,7 @@ class Animations:
         self._strip = strip
         self._strip.disable_auto_write()
         self.is_clear = clear
+        self.state = dict()
 
     def stop(self):
         self.is_enabled = False
@@ -216,10 +217,13 @@ class Animations:
         Blinks a random LED with the given colors
         """
         idx = choice(self._strip.range)
+        while idx == self.state.get("random_blink_index"):
+            idx = choice(self._strip.range)
         for color in colors:
             if not self.is_enabled:
                 return
             self.blink_single(color, idx, background, pause)
+        self.state["random_blink_index"] = idx
 
     def bounce(self, color, pause: int = 60):
         for i in range(4 * len(self._strip)):
@@ -329,7 +333,12 @@ class AnimationController:
         self._current_animation_kwargs = kwargs
         self.is_running = True
         self._animations.stop()
+        args_string = ", ".join(str(i) for i in [animation_name, args, kwargs])
+        if args_string == self._animations.state.get("current_animation_args"):
+            print("The animation parameters were already set")
+            return
         print("Change animation to:", animation_name, args, kwargs)
+        self._animations.state["current_animation_args"] = args_string
 
     def run(self):
         while True:
