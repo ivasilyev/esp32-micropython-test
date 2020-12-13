@@ -38,6 +38,10 @@ class ColorManager:
         return tuple([choice(range(256)) for _ in "rgb"])
 
     @staticmethod
+    def validate_color(color):
+        return [j if j < 256 else 255 for j in [i if i > 0 else 0 for i in color]]
+
+    @staticmethod
     def count_linspace(start, stop, count: int = 10):
         if count == 2:
             return [start, stop]
@@ -72,7 +76,7 @@ class ColorManager:
         return tuple(int(s.strip("#")[i:i+2], 16) for i in (0, 2, 4))
 
 
-class AnimationControllerThrowable(Exception):
+class StripIsNotReadyThrowable(Exception):
     def __init__(self, message: str = ""):
         super().__init__(message)
 
@@ -89,10 +93,10 @@ class Strip(NeoPixel):
         self._range_backup = self.range.copy()
         self.brightness = brightness
         self._auto_write = auto_write
-        self.validate()
+        self._validate_args()
         self.reset()
 
-    def validate(self):
+    def _validate_args(self):
         if self.brightness > 1.:
             raise ValueError("The brightness coefficient cannot be greater than 1!")
 
@@ -101,24 +105,17 @@ class Strip(NeoPixel):
 
     def _apply(self):
         if not self.is_enabled:
-            raise AnimationControllerThrowable
+            raise StripIsNotReadyThrowable
         if self._auto_write:
             self.write()
 
-    @staticmethod
-    def validate_color(color):
-        color = [i if i > 0 else 0 for i in color]
-        color = [i if i < 256 else 255 for i in color]
-        return color
-
-    def _set_color(self, color):
+    def _get_color(self, color):
         if color == "random":
             color = ColorManager.get_random_color()
-        color = [round(i * self.brightness) for i in color]
-        return self.validate_color(color)
+        return ColorManager.validate_color([round(i * self.brightness) for i in color])
 
-    def __setitem__(self, key, value):
-        super().__setitem__(key, self._set_color(value))
+    def __setitem__(self, index, color):
+        super().__setitem__(index, self._get_color(color))
         self._apply()
 
     def __len__(self):
@@ -130,22 +127,27 @@ class Strip(NeoPixel):
     def fill(self, color, range_=()):
         if len(range_) == 0:
             range_ = self.range
+        # A much more faster, but may throw `maximum recursion depth exceeded`
         _ = list(map(lambda x: self.__setitem__(x, color), range_))
         self._apply()
+
+    def blacken(self):
+        # An ultimate directive
+        super().fill(BLK)
+        super().write()
 
     def reset(self):
         self.is_enabled = False
         sleep_ms(100)  # Otherwise the translator does not even notice that
         self.is_enabled = True
-        self.fill(BLK, self._range_backup)
-        self.write()
+        self.blacken()
         collect()
 
-    def fill_except(self, color, idx: int):
-        if idx > len(self):
+    def fill_except(self, color, index: int):
+        if index > len(self):
             return
         range_ = self.range.copy()
-        range_.pop(idx)
+        range_.pop(index)
         self.fill(color, range_)
         self._apply()
 
@@ -165,9 +167,17 @@ class Strip(NeoPixel):
 class Animations:
     # Based on: https://docs.micropython.org/en/latest/esp8266/tutorial/neopixel.html
     def __init__(self, strip: Strip, clear: bool = True):
+        self.is_enabled = True
         self._strip = strip
         self._strip.disable_auto_write()
         self.is_clear = clear
+
+    def stop(self):
+        self.is_enabled = False
+        sleep_ms(100)
+        collect()
+        self.is_enabled = True
+        # self._strip.blacken()  # Throws `maximum recursion depth exceeded` when in separate thread
 
     def get_strip(self):
         return self._strip
@@ -177,21 +187,25 @@ class Animations:
         collect()
         sleep_ms(ms)
 
-    def blink_single(self, colors, idx, background=BLK, pause: int = 15):
+    def blink_single(self, color, index, background=BLK, pause: int = 15):
         """
         Blinks a certain LED with the given color
         """
-        for color in colors:
-            self._strip[idx] = color
-            self._strip.write()
-            self.pause(pause)
-            self._strip[idx] = background
+        if not self.is_enabled:
+            return
+        self._strip.fill(background)
+        self._strip[index] = color
+        self._strip.write()
+        self.pause(pause)
+        self._strip[index] = background
 
     def blink_all(self, colors, background=BLK, pause: int = 15):
         """
         Blinks the whole strip with the given colors
         """
         for color in colors:
+            if not self.is_enabled:
+                return
             self._strip.fill(background)
             self._strip.fill(color)
             self._strip.write()
@@ -203,10 +217,9 @@ class Animations:
         """
         idx = choice(self._strip.range)
         for color in colors:
-            self._strip[idx] = color
-            self._strip.write()
-            self.pause(pause)
-            self._strip[idx] = background
+            if not self.is_enabled:
+                return
+            self.blink_single(color, idx, background, pause)
 
     def bounce(self, color, pause: int = 60):
         for i in range(4 * len(self._strip)):
@@ -222,6 +235,8 @@ class Animations:
     def bounce2(self, colors, background=BLK, pause: int = 20, always_lit: bool = False):
         _range = self._strip.range + self._strip.range[:-1][::-1]
         for color in colors:
+            if not self.is_enabled:
+                return
             for idx in _range:
                 self._strip[idx] = color
                 self._strip.write()
@@ -237,12 +252,15 @@ class Animations:
             self._strip.write()
             self.pause(pause)
 
-    def cycle2(self, colors, background=BLK, reverse: bool = False, pause: int = 20, always_lit: bool = False):
+    def cycle2(self, colors, background=BLK, reverse: bool = False, pause: int = 20,
+               always_lit: bool = False):
         if not reverse:
             _range = self._strip.range
         else:
             _range = self._strip.range[::-1]
         for color in colors:
+            if not self.is_enabled:
+                return
             for idx in _range:
                 self._strip[idx] = color
                 self._strip.write()
@@ -269,13 +287,9 @@ class Animations:
             self._strip.write()
             period -= 1
 
-    def blacken(self):
-        self._strip.fill(BLK)
-        self._strip.write()
-
     def _clear(self):
         if self.is_clear:
-            self.blacken()
+            self._strip.blacken()
 
     def animate(self, func, *args, **kwargs):
         self._clear()
@@ -285,7 +299,7 @@ class Animations:
         except Exception as e:
             raise e
         finally:
-            self.blacken()
+            self._strip.blacken()
 
 
 class AnimationController:
@@ -300,7 +314,7 @@ class AnimationController:
     def restart(self):
         try:
             self._strip.reset()
-        except AnimationControllerThrowable:
+        except StripIsNotReadyThrowable:
             pass
         except Exception as e:
             print("Animation restart problem:", e)
@@ -314,7 +328,7 @@ class AnimationController:
         self._current_animation_args = args
         self._current_animation_kwargs = kwargs
         self.is_running = True
-        self.restart()
+        self._animations.stop()
         print("Change animation to:", animation_name, args, kwargs)
 
     def run(self):
@@ -324,5 +338,5 @@ class AnimationController:
             try:
                 getattr(self._animations, self._current_animation)(
                     *self._current_animation_args, **self._current_animation_kwargs)
-            except AnimationControllerThrowable:
+            except StripIsNotReadyThrowable:
                 collect()
