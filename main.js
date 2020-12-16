@@ -1,23 +1,37 @@
+const ANIMATIONS = ['random_blink', 'cycle2', 'bounce2'];
+
 function validateFormOnSubmit() {
-    const out = {
-        "colors": {},
-        "animation": validate_animation(document.getElementById("animation_dropdown").value)
-    };
+    let validations = [];
+    let animation = document.getElementById('animation_dropdown').value;
+    validations.push(validate_animation(animation, 'animation_dropdown'));
+
+    let colors = {};
+
     const _arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     _arr.forEach((n) => {
         let id = `color_${n}`;
         let color = document.getElementById(id);
         if (color !== null) {
             color = color.value;
-            if (color.length > 0) out["colors"][id] = validateColor(color);
+            validations.push(validateColor(color));
+            colors[id] = color;
         }
     });
-    get_json(out);
-    //alert(JSON.stringify(out));
-    //post_json(out);
+
+    if (validations.every((x) => {
+        return x
+    })) {
+        let out = {
+            colors: colors,
+            animation: animation
+        };
+        console.log(out);
+        localStorage.setItem('animation_data', JSON.stringify(out));
+        send_get_query(out);
+    }
 }
 
-function post_json(json) {
+function send_post_query(json) {
     let xhr = new XMLHttpRequest();
     let url = "/";
     xhr.open("POST", url, true);
@@ -31,7 +45,7 @@ function post_json(json) {
     xhr.send(data);
 }
 
-function get_json(json) {
+function send_get_query(json) {
     let xhr = new XMLHttpRequest();
     let url = "url?data=" + encodeURIComponent(JSON.stringify(json));
     xhr.open("GET", url, true);
@@ -44,12 +58,25 @@ function get_json(json) {
     xhr.send();
 }
 
-function validateColor(x) {
-    console.log(x);
-    return x;
+function draw_error(element_id, error_description) {
+    document.getElementById(element_id).innerHTML = error_description;
 }
 
-function validate_animation(x) {
-    console.log(x);
-    return x;
+function validateColor(hex) {
+    return (hex.startsWith('#') && hex.length === 7);
+}
+
+function validate_animation(animation_name, element_id) {
+    if (!ANIMATIONS.includes(animation_name)) {
+        alert('Please choose an animation!');
+        draw_error(element_id, 'Please choose an animation!');
+        return false;
+    }
+    return true;
+}
+
+class App {
+    constructor() {
+        this.animation_data = JSON.parse(localStorage.getItem('animation_data'));
+    }
 }

@@ -89,7 +89,7 @@ class Strip(NeoPixel):
         self.is_enabled = True
         self.LED_PIN = pin
         self.PIXEL_COUNT = n
-        self.range = list(range(len(self)))
+        self.range = list(range(self.PIXEL_COUNT))
         self._range_backup = self.range.copy()
         self.brightness = brightness
         self._auto_write = auto_write
@@ -127,8 +127,10 @@ class Strip(NeoPixel):
     def fill(self, color, range_=()):
         if len(range_) == 0:
             range_ = self.range
-        # A much more faster, but may throw `maximum recursion depth exceeded`
-        _ = list(map(lambda x: self.__setitem__(x, color), range_))
+        for idx in range_:
+            if not self.is_enabled:
+                return
+            self[idx] = color
         self._apply()
 
     def blacken(self):
