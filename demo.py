@@ -158,7 +158,7 @@ class Strip(NeoPixel):
         collect()
 
     def loop_order(self):
-        self.range = self.range + self.range[:-1][::-1]
+        self.range = self.range + self.range[1:-1][::-1]
         collect()
 
     def restore_order(self):
@@ -239,7 +239,7 @@ class Animations:
             self.pause(pause)
 
     def bounce2(self, colors, background=BLK, pause: int = 20, always_lit: bool = False):
-        _range = self._strip.range + self._strip.range[:-1][::-1]
+        _range = self._strip.range + self._strip.range[1:-1][::-1]
         for color in colors:
             if not self.is_enabled:
                 return
