@@ -29,8 +29,7 @@ class HTTPServer:
         self._css_template = Utils.load_string("styles.css")
         self._js_template = Utils.load_string("main.js")
 
-        self.state = {"animation": "", "color_transitions": 10, "always_lit": False,
-                      "colors": OrderedDict([("color_0", "#f5647f"), ("color_1", "#7cc4e4")])}
+        self.state = {}
         self.start()
 
     def start(self):
@@ -98,9 +97,10 @@ class HTTPServer:
             return
         self.state.update(d)
         if "colors" in d.keys():
-            self.state["colors"] = OrderedDict(d["colors"].items())
+            self.state["colors"] = OrderedDict(sorted(d["colors"].items()))
             colors = [ColorManager.convert_hex_to_rgb(i) for i in self.state["colors"].values()]
-            shades = ColorManager.create_color_loop(colors, steps=self.state["color_transitions"])
+            shades = ColorManager.create_color_loop(
+                colors, steps=int(self.state["color_transitions"]))
             self._controller.set_animation(self.state["animation"], colors=shades)
 
     def handle_http(self, conn):

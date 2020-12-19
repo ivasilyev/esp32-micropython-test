@@ -1,37 +1,5 @@
 const ANIMATIONS = ['random_blink', 'cycle2', 'bounce2'];
 
-function validateFormOnSubmit() {
-    request_current_state();
-    let validations = [];
-    let animation = document.getElementById('animation_dropdown').value;
-    validations.push(validate_animation(animation, 'animation_dropdown'));
-
-    let colors = {};
-
-    const _arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    _arr.forEach((n) => {
-        let id = `color_${n}`;
-        let color = document.getElementById(id);
-        if (color !== null) {
-            color = color.value;
-            validations.push(validateColor(color));
-            colors[id] = color;
-        }
-    });
-
-    if (validations.every((x) => {
-        return x
-    })) {
-        let out = {
-            colors: colors,
-            animation: animation
-        };
-        console.log(out);
-        localStorage.setItem('animation_data', JSON.stringify(out));
-        send_get_query(out);
-    }
-}
-
 function send_post_query(json) {
     let xhr = new XMLHttpRequest();
     let url = "/";
@@ -111,8 +79,13 @@ class App {
         if (a.length > 0) {
             document.getElementById('animation_dropdown').value = a;
         }
-        Object.keys(this.state.colors).forEach((k) => {
-            document.getElementById(k).value = this.state.colors[k];
+        Object.keys(this.state.colors).forEach((id) => {
+            const number = this.parseColorNumber(id);
+            const color = this.state.colors[id];
+            if (document.getElementById(`color_picker_${number}`) === null ) {
+                this.makeColorPicker(number, color);
+            }
+            else {document.getElementById(`color_${number}`).value = color}
         });
     }
 
@@ -123,11 +96,11 @@ class App {
         }
     }
     
-    makeColorPicker(number) {
+    makeColorPicker(number, color = this.DEFAULT_COLOR) {
         const div = document.getElementById('color_selector');
         div.insertAdjacentHTML('beforeend',
-            `<span id="color_picker_${number}"><label for="color_${number}">Color ${number + 1}</label><input type="color" id="color_${number}" name="${number}" value=${this.DEFAULT_COLOR}></span>`);
-        this.state.colors[`color_${number}`] = this.DEFAULT_COLOR;
+            `<span id="color_picker_${number}"><label for="color_${number}">Color ${number + 1}</label><input type="color" id="color_${number}" name="${number}" value=${color}></span>`);
+        this.state.colors[`color_${number}`] = color;
     }
     
     removeColorPicker(number) {
@@ -136,14 +109,16 @@ class App {
         delete this.state.colors[`color_${number}`];
     }
 
-    getLatestColorNumber() {
-        return Object.keys(this.state.colors).map((x) => {
-            return (parseInt(x.match('_([0-9]+)$')[1]))
-        }).slice(-1)[0];
+    parseColorNumber(s) {
+        return parseInt(s.match('_([0-9]+)$')[1])
     }
 
-    pushColorPicker() {
-        this.makeColorPicker(this.getLatestColorNumber() + 1);
+    getLatestColorNumber() {
+        return Object.keys(this.state.colors).map(this.parseColorNumber).sort().slice(-1)[0];
+    }
+
+    pushColorPicker(color = this.DEFAULT_COLOR) {
+        this.makeColorPicker(this.getLatestColorNumber() + 1, color);
     }
 
     popColorPicker() {
@@ -155,6 +130,37 @@ class App {
             alert('Two colors minimum!')
         }
     }
+
+    validateFormOnSubmit() {
+        let validations = [];
+        let animation = document.getElementById('animation_dropdown').value;
+        validations.push(validate_animation(animation, 'animation_dropdown'));
+
+        let colors = {};
+
+        Object.keys(this.state.colors).forEach((id) => {
+            let color = document.getElementById(id);
+            if (color !== null) {
+                color = color.value;
+                validations.push(validateColor(color));
+                colors[id] = color;
+            }
+        });
+
+        if (validations.every((x) => {
+            return x
+        })) {
+            let out = {
+                colors: colors,
+                animation: animation,
+                color_transitions: this.state.color_transitions,
+                always_lit: this.state.always_lit,
+            };
+            console.log(out);
+            localStorage.setItem('animation_data', JSON.stringify(out));
+            send_get_query(out);
+        }
+    }
 }
 
 const app = new App();
@@ -164,6 +170,10 @@ if (form) {
       e.preventDefault();
     });
 }
+document.getElementById('button__submit').addEventListener(
+    'click', function(e) {
+        app.validateFormOnSubmit();
+    });
 document.getElementById('button__push_color').addEventListener(
     'click', function(e) {
         app.pushColorPicker();
