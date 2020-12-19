@@ -98,7 +98,7 @@ class App {
         request_current_state()
     }
 
-    update_page() {
+    render() {
         let a = this.state.animation;
         if (a.length > 0) {
             document.getElementById('animation_dropdown').value = a;
@@ -111,9 +111,26 @@ class App {
     set_state(state) {
         if (Object.keys(state).length > 0) {
             this.state = state;
-            this.update_page();
+            this.render();
         }
     }
 }
 
-let app = new App();
+const app = new App();
+const form = document.querySelector('form');
+if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+    });
+}
+
+function make_color_field(number) {
+    const div = document.getElementById('color_selector');
+    div.insertAdjacentHTML('beforeend',
+        `<span id="color_palette_${number}"><label for="color_${number}">Color ${number}</label><input type="color" id="color_${number}" name="${number}" value="#000000"></span>`);
+}
+
+function remove_color_field(number) {
+    const span = document.getElementById(`color_palette_${number}`);
+    span.remove();
+}

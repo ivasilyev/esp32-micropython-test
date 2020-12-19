@@ -12,8 +12,6 @@
 
         <link rel="stylesheet" type="text/css" href="./styles.css">
 
-        <script src="./main.js"></script>
-
     </head>
 
     <body>
@@ -22,17 +20,20 @@
             <h1>Light control panel</h1>
         </div>
         <div>
-            <form id="animation_form_id" name="animation_form_name"
-                  onsubmit="validateFormOnSubmit(); return false;" >
+            <form id="animation_form_id" name="animation_form_name">
                 <fieldset>
-                    <legend>Selecting elements</legend>
+                    <legend>Select elements</legend>
                     <div>
-                        <p>Select colors</p>
-                        <div>
-                            <label for="color_0">Color 1</label>
-                            <input type="color" id="color_0" name="" value="#f5647f">
-                            <label for="color_1">Color 2</label>
-                            <input type="color" id="color_1" name="" value="#7cc4e4">
+                        <p>Pick colors:</p>
+                        <div id="color_selector">
+                            <span id="color_palette_0">
+                                <label for="color_0">Color 1</label>
+                                <input type="color" id="color_0" name="" value="#f5647f">
+                            </span>
+                            <span id="color_palette_1">
+                                <label for="color_1">Color 2</label>
+                                <input type="color" id="color_1" name="" value="#7cc4e4">
+                            </span>
                         </div>
                     </div>
                     <div>
@@ -45,10 +46,13 @@
                         </select>
                     </div>
                     <div>
-                        <button class="button" type="submit" name="submit" id="submit">Set</button>
+                        <button>Set</button>
                     </div>
                 </fieldset>
             </form>
         </div>
     </body>
 </html>
+
+
+<script src="./main.js"></script>
