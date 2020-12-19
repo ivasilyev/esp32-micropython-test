@@ -133,16 +133,21 @@ class App {
 
     validateTransitionNumber() {
         const transitionsNumber = parseInt(transitionSlider.value);
-        if (transitionsNumber >= 2 || transitionsNumber <= 20) {
+        if (transitionsNumber >= 2 || transitionsNumber <= 22) {
             this.state.color_transitions = transitionsNumber;
             return true;
         }
         return false;
     }
 
+    validateAlwaysLitCheckbox() {
+        this.state.always_lit = alwaysLitCheckbox.checked;
+        return true;
+    }
+
     validateFormOnSubmit() {
         let validations = [];
-        let animation = document.getElementById('animation_dropdown').value;
+        let animation = animationDropdown.value;
         validations.push(validate_animation(animation, 'animation_dropdown'));
 
         let colors = {};
@@ -157,6 +162,7 @@ class App {
         });
 
         validations.push(this.validateTransitionNumber());
+        validations.push(this.validateAlwaysLitCheckbox());
 
         if (validations.every((x) => {
             return x
@@ -192,6 +198,14 @@ document.getElementById('button__push_color').addEventListener(
 document.getElementById('button__pop_color').addEventListener(
     'click', function(e) {
         app.popColorPicker();
+    });
+const animationDropdown = document.getElementById('animation_dropdown');
+const alwaysLitCheckbox = document.getElementById('always_lit__checkbox');
+animationDropdown.addEventListener(
+    'change', function() {
+        const isBlink = this.value === 'random_blink';
+        alwaysLitCheckbox.disabled = isBlink;
+        if (isBlink) {alwaysLitCheckbox.checked = false;}
     });
 
 const transitionSlider = document.getElementById('range__shades');

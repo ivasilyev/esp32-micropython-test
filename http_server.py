@@ -96,12 +96,15 @@ class HTTPServer:
         except:
             return
         self.state.update(d)
+        kwargs = dict()
         if "colors" in d.keys():
             self.state["colors"] = OrderedDict(sorted(d["colors"].items()))
             colors = [ColorManager.convert_hex_to_rgb(i) for i in self.state["colors"].values()]
-            shades = ColorManager.create_color_loop(
-                colors, steps=int(self.state["color_transitions"]))
-            self._controller.set_animation(self.state["animation"], colors=shades)
+            kwargs["colors"] = ColorManager.create_color_loop(
+                colors, steps=self.state["color_transitions"])
+            if self.state["always_lit"]:
+                kwargs["always_lit"] = self.state["always_lit"]
+            self._controller.set_animation(self.state["animation"], **kwargs)
 
     def handle_http(self, conn):
         data = b""
