@@ -43,7 +43,7 @@ class ColorManager:
 
     @staticmethod
     def count_linspace(start, stop, count: int = 10):
-        if count == 2:
+        if count <= 2:
             return [start, stop]
         start = float(start)
         stop = float(stop)
