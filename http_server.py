@@ -28,8 +28,7 @@ class HTTPServer:
         self._css_template = Utils.load_string("styles.css")
         self._js_template = Utils.load_string("main.js")
 
-        self.state = {"animation": "",
-                      "color_nodes": ["#{}".format("0" * 6) for i in range(10)]}
+        self.state = {"animation": "", "colors": ["#f5647f", "#7cc4e4"], }
         self.start()
 
     def start(self):
@@ -95,13 +94,15 @@ class HTTPServer:
             d = loads(Utils.parse_percent_encoding(j))
         except:
             return
-        animation = d["animation"]
+        a = d["animation"]
+        self.state["animation"] = a
         if "colors" in d.keys():
             c = list({i: d["colors"][i] for i in sorted(d["colors"].keys())}.values())
+            self.state["colors"] = c
             colors = ColorManager.create_color_loop([ColorManager.convert_hex_to_rgb(i) for i in c])
-            params = str((animation, colors))
+            params = str((a, colors))
             print(params)
-            self._controller.set_animation(animation, colors=colors)
+            self._controller.set_animation(a, colors=colors)
 
     def handle_http(self, conn):
         data = b""

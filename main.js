@@ -86,7 +86,7 @@ function validateColor(hex) {
 function validate_animation(animation_name, element_id) {
     if (!ANIMATIONS.includes(animation_name)) {
         alert('Please choose an animation!');
-        draw_error(element_id, 'Please choose an animation!');
+        //draw_error(element_id, 'Please choose an animation!');
         return false;
     }
     return true;
