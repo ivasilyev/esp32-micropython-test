@@ -53,9 +53,9 @@ function send_get_query(json) {
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            console.log('send_get_query', xhr.responseText)
-            //json = JSON.parse(xhr.responseText);
-
+            let state = JSON.parse(xhr.responseText);
+            console.log('send_get_query', state);
+            app.set_state(state)
         }
     };
     xhr.send();
@@ -67,9 +67,9 @@ function request_current_state() {
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            //let json = JSON.parse(xhr.responseText);
-            //console.log(json);
-            console.log('request_current_state', xhr.responseText)
+            let state = JSON.parse(xhr.responseText);
+            console.log('request_current_state', state);
+            app.set_state(state)
         }
     };
     xhr.send();
@@ -95,5 +95,22 @@ function validate_animation(animation_name, element_id) {
 class App {
     constructor() {
         this.animation_data = JSON.parse(localStorage.getItem('animation_data'));
+        this.state = request_current_state()
+    }
+
+    update_page() {
+        document.getElementById('animation_dropdown').value = this.state.animation;
+        this.state.colors.forEach((color, idx, arr) => {
+            document.getElementById(`color_${idx}`).value = color;
+        })
+    }
+
+    set_state(state) {
+        if (Object.keys(state).length > 0) {
+            this.state = state;
+            this.update_page();
+        }
     }
 }
+
+let app = new App();

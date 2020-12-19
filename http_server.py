@@ -28,7 +28,8 @@ class HTTPServer:
         self._css_template = Utils.load_string("styles.css")
         self._js_template = Utils.load_string("main.js")
 
-        self.state = {"animation": "", "colors": ["#f5647f", "#7cc4e4"], }
+        self.state = {"animation": "", "colors": ["#f5647f", "#7cc4e4"],
+                      "color_transitions": 10, "always_lit": False}
         self.start()
 
     def start(self):
