@@ -95,14 +95,17 @@ function validate_animation(animation_name, element_id) {
 class App {
     constructor() {
         this.animation_data = JSON.parse(localStorage.getItem('animation_data'));
-        this.state = request_current_state()
+        request_current_state()
     }
 
     update_page() {
-        document.getElementById('animation_dropdown').value = this.state.animation;
-        this.state.colors.forEach((color, idx, arr) => {
-            document.getElementById(`color_${idx}`).value = color;
-        })
+        let a = this.state.animation;
+        if (a.length > 0) {
+            document.getElementById('animation_dropdown').value = a;
+        }
+        Object.keys(this.state.colors).forEach((k) => {
+            document.getElementById(k).value = this.state.colors[k];
+        });
     }
 
     set_state(state) {

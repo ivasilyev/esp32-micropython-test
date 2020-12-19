@@ -6,6 +6,7 @@ except ImportError:
 from utime import sleep_ms
 from gc import collect
 from json import loads, dumps
+from collections import OrderedDict
 from utils import Utils
 from demo import AnimationController, ColorManager
 
@@ -28,8 +29,8 @@ class HTTPServer:
         self._css_template = Utils.load_string("styles.css")
         self._js_template = Utils.load_string("main.js")
 
-        self.state = {"animation": "", "colors": ["#f5647f", "#7cc4e4"],
-                      "color_transitions": 10, "always_lit": False}
+        self.state = {"animation": "", "color_transitions": 10, "always_lit": False,
+                      "colors": OrderedDict([("color_0", "#f5647f"), ("color_1", "#7cc4e4")])}
         self.start()
 
     def start(self):
@@ -95,15 +96,12 @@ class HTTPServer:
             d = loads(Utils.parse_percent_encoding(j))
         except:
             return
-        a = d["animation"]
-        self.state["animation"] = a
+        self.state.update(d)
         if "colors" in d.keys():
-            c = list({i: d["colors"][i] for i in sorted(d["colors"].keys())}.values())
-            self.state["colors"] = c
-            colors = ColorManager.create_color_loop([ColorManager.convert_hex_to_rgb(i) for i in c])
-            params = str((a, colors))
-            print(params)
-            self._controller.set_animation(a, colors=colors)
+            self.state["colors"] = OrderedDict(d["colors"].items())
+            colors = [ColorManager.convert_hex_to_rgb(i) for i in self.state["colors"].values()]
+            shades = ColorManager.create_color_loop(colors, steps=self.state["color_transitions"])
+            self._controller.set_animation(self.state["animation"], colors=shades)
 
     def handle_http(self, conn):
         data = b""
@@ -157,9 +155,9 @@ class HTTPServer:
                     connection.close()
             except Exception as e:
                 print("Connection handling problem:", e)
-                sleep_ms(2000)
                 self.send_response(connection, "500 Internal Server Error", payload="Error")
                 connection.close()
+                raise
             finally:
                 connection.close()
         except OSError as e:
@@ -174,3 +172,4 @@ class HTTPServer:
             except Exception as e:
                 print(e)
                 sleep_ms(2000)
+                raise
