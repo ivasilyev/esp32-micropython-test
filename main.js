@@ -55,7 +55,7 @@ function send_get_query(json) {
         if (xhr.readyState === 4 && xhr.status === 200) {
             let state = JSON.parse(xhr.responseText);
             console.log('send_get_query', state);
-            app.set_state(state)
+            app.setState(state)
         }
     };
     xhr.send();
@@ -69,7 +69,7 @@ function request_current_state() {
         if (xhr.readyState === 4 && xhr.status === 200) {
             let state = JSON.parse(xhr.responseText);
             console.log('request_current_state', state);
-            app.set_state(state)
+            app.setState(state)
         }
     };
     xhr.send();
@@ -93,9 +93,17 @@ function validate_animation(animation_name, element_id) {
 }
 
 class App {
+    DEFAULT_STATE = {animation: "", color_transitions: 10, always_lit: false,
+                      colors: {color_0: "#f5647f", color_1: "#7cc4e4"}};
+    DEFAULT_COLOR = '#000000';
+
     constructor() {
+        this.state = {};
         this.animation_data = JSON.parse(localStorage.getItem('animation_data'));
-        request_current_state()
+        request_current_state();
+        if (Object.keys(this.state).length === 0) {
+            this.setState(this.DEFAULT_STATE);
+        }
     }
 
     render() {
@@ -108,11 +116,38 @@ class App {
         });
     }
 
-    set_state(state) {
+    setState(state) {
         if (Object.keys(state).length > 0) {
             this.state = state;
             this.render();
         }
+    }
+    
+    makeColorPicker(number) {
+        const div = document.getElementById('color_selector');
+        div.insertAdjacentHTML('beforeend',
+            `<span id="color_picker_${number}"><label for="color_${number}">Color ${number + 1}</label><input type="color" id="color_${number}" name="${number}" value=${this.DEFAULT_COLOR}></span>`);
+        this.state.colors[`color_${number}`] = this.DEFAULT_COLOR;
+    }
+    
+    removeColorPicker(number) {
+        const span = document.getElementById(`color_picker_${number}`);
+        span.remove();
+        delete this.state.colors[`color_${number}`];
+    }
+
+    getLatestColorNumber() {
+        return Object.keys(this.state.colors).map((x) => {
+            return (parseInt(x.match('_([0-9]+)$')[1]))
+        }).slice(-1)[0];
+    }
+
+    pushColorPicker() {
+        this.makeColorPicker(this.getLatestColorNumber() + 1);
+    }
+
+    popColorPicker() {
+        this.removeColorPicker(this.getLatestColorNumber() + 1);
     }
 }
 
@@ -123,14 +158,19 @@ if (form) {
       e.preventDefault();
     });
 }
+document.getElementById('button__push_color').addEventListener(
+    'click', function(e) {
+        app.pushColorPicker();
+    });
 
 function make_color_field(number) {
     const div = document.getElementById('color_selector');
     div.insertAdjacentHTML('beforeend',
-        `<span id="color_palette_${number}"><label for="color_${number}">Color ${number}</label><input type="color" id="color_${number}" name="${number}" value="#000000"></span>`);
+        `<span id="color_picker_${number}"><label for="color_${number}">Color ${number}</label><input type="color" id="color_${number}" name="${number}" value="#000000"></span>`);
 }
 
 function remove_color_field(number) {
-    const span = document.getElementById(`color_palette_${number}`);
+    const span = document.getElementById(`color_picker_${number}`);
     span.remove();
 }
+document.getElementById('button__push_color')
