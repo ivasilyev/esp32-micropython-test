@@ -1,6 +1,7 @@
 const ANIMATIONS = ['random_blink', 'cycle2', 'bounce2'];
 
 function validateFormOnSubmit() {
+    request_current_state();
     let validations = [];
     let animation = document.getElementById('animation_dropdown').value;
     validations.push(validate_animation(animation, 'animation_dropdown'));
@@ -52,7 +53,23 @@ function send_get_query(json) {
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            json = JSON.parse(xhr.responseText);
+            console.log('send_get_query', xhr.responseText)
+            //json = JSON.parse(xhr.responseText);
+
+        }
+    };
+    xhr.send();
+}
+
+function request_current_state() {
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', '/state', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            //let json = JSON.parse(xhr.responseText);
+            //console.log(json);
+            console.log('request_current_state', xhr.responseText)
         }
     };
     xhr.send();

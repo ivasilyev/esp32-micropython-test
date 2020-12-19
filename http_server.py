@@ -5,7 +5,7 @@ except ImportError:
 
 from utime import sleep_ms
 from gc import collect
-from json import loads
+from json import loads, dumps
 from utils import Utils
 from demo import AnimationController, ColorManager
 
@@ -23,9 +23,13 @@ class HTTPServer:
         self.addr = socket.getaddrinfo(self.HOST, self.PORT)[0][-1]
         self.socket = None
         self.routes = dict()
+
         self._html_template = Utils.load_string("index.html")
         self._css_template = Utils.load_string("styles.css")
         self._js_template = Utils.load_string("main.js")
+
+        self.state = {"animation": "",
+                      "color_nodes": ["#{}".format("0" * 6) for i in range(10)]}
         self.start()
 
     def start(self):
@@ -83,7 +87,10 @@ class HTTPServer:
         conn.send("\r\n".join(header_lines).encode("utf-8"))
         conn.sendall(payload)
 
-    def handle_json(self, j):
+    def send_current_state(self):
+        pass
+
+    def receive_submission(self, j):
         try:
             d = loads(Utils.parse_percent_encoding(j))
         except:
@@ -118,18 +125,23 @@ class HTTPServer:
             except:
                 print("payload", payload)
                 return
+        print("udata", udata)
+        print(method, payload, protocol)
         if method != "GET":
-            print("udata", udata)
             if method in ["POST", "PUT"]:
-                pass
+                self.send_response(conn, type_=self.TYPE_HTML, payload=self.render())
             else:
                 self.send_response(conn, status="404 Not Found", payload="404\r\nPage not found")
                 return
         if len(params) > 0:
             print("params", params)
             if "data" in params.keys():
-                self.handle_json(params["data"])
-        self.send_response(conn, type_=self.TYPE_HTML, payload=self.render())
+                self.receive_submission(params["data"])
+                self.send_response(conn, type_="application/json", payload=dumps(self.state))
+        if path == "/":
+            self.send_response(conn, type_=self.TYPE_HTML, payload=self.render())
+        if "state" in path:
+            self.send_response(conn, type_="application/json", payload=dumps(self.state))
 
     def response(self):
         try:
