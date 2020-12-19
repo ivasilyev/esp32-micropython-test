@@ -147,7 +147,13 @@ class App {
     }
 
     popColorPicker() {
-        this.removeColorPicker(this.getLatestColorNumber() + 1);
+        const latest = this.getLatestColorNumber();
+        if (latest > 1) {
+            this.removeColorPicker(this.getLatestColorNumber());
+        }
+        else  {
+            alert('Two colors minimum!')
+        }
     }
 }
 
@@ -162,15 +168,7 @@ document.getElementById('button__push_color').addEventListener(
     'click', function(e) {
         app.pushColorPicker();
     });
-
-function make_color_field(number) {
-    const div = document.getElementById('color_selector');
-    div.insertAdjacentHTML('beforeend',
-        `<span id="color_picker_${number}"><label for="color_${number}">Color ${number}</label><input type="color" id="color_${number}" name="${number}" value="#000000"></span>`);
-}
-
-function remove_color_field(number) {
-    const span = document.getElementById(`color_picker_${number}`);
-    span.remove();
-}
-document.getElementById('button__push_color')
+document.getElementById('button__pop_color').addEventListener(
+    'click', function(e) {
+        app.popColorPicker();
+    });
