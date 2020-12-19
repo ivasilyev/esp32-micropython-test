@@ -131,6 +131,15 @@ class App {
         }
     }
 
+    validateTransitionNumber() {
+        const transitionsNumber = parseInt(transitionSlider.value);
+        if (transitionsNumber >= 2 || transitionsNumber <= 20) {
+            this.state.color_transitions = transitionsNumber;
+            return true;
+        }
+        return false;
+    }
+
     validateFormOnSubmit() {
         let validations = [];
         let animation = document.getElementById('animation_dropdown').value;
@@ -146,6 +155,8 @@ class App {
                 colors[id] = color;
             }
         });
+
+        validations.push(this.validateTransitionNumber());
 
         if (validations.every((x) => {
             return x
@@ -182,3 +193,10 @@ document.getElementById('button__pop_color').addEventListener(
     'click', function(e) {
         app.popColorPicker();
     });
+
+const transitionSlider = document.getElementById('range__shades');
+const transitionInput = document.getElementById('input__shades');
+transitionInput.value = transitionSlider.value;
+
+transitionSlider.oninput = () => transitionInput.value = transitionSlider.value;
+transitionInput.oninput = () => transitionSlider.value = transitionInput.value;

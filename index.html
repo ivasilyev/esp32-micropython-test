@@ -31,9 +31,14 @@
                         <button class="color_selector__button" id="button__push_color">+</button>
                         <button class="color_selector__button" id="button__pop_color">-</button>
                     </div>
+                    <div class="range">
+                        <p>Select shade number:</p>
+                        <input type="range" min="2" max="22" step="1" id="range__shades">
+                        <input type="text" id="input__shades">
+                    </div>
                     <div>
-                        <label for="animation_dropdown">Select an animation:</label>
-                        <select id="animation_dropdown" name="animation" >
+                        <p>Select an animation:</p>
+                        <select id="animation_dropdown" name="animation">
                             <option selected disabled>Select</option>
                             <option value="random_blink">random_blink</option>
                             <option value="bounce2">bounce2</option>
