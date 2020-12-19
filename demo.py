@@ -75,6 +75,10 @@ class ColorManager:
     def convert_hex_to_rgb(s: str):
         return tuple(int(s.strip("#")[i:i+2], 16) for i in (0, 2, 4))
 
+    @staticmethod
+    def convert_rgb_to_hex(r, g, b):
+        return "#{:02x}{:02x}{:02x}".format(r, g, b)
+
 
 class StripIsNotReadyThrowable(Exception):
     def __init__(self, message: str = ""):
@@ -89,7 +93,7 @@ class Strip(NeoPixel):
         self.is_enabled = True
         self.LED_PIN = pin
         self.PIXEL_COUNT = n
-        self.range = list(range(self.PIXEL_COUNT))
+        self.range = sorted(list(range(self.PIXEL_COUNT)))
         self._range_backup = self.range.copy()
         self.brightness = brightness
         self._auto_write = auto_write
@@ -103,9 +107,12 @@ class Strip(NeoPixel):
     def disable_auto_write(self):
         self._auto_write = False
 
-    def _apply(self):
+    def write(self):
         if not self.is_enabled:
             raise StripIsNotReadyThrowable
+        super().write()
+
+    def _apply(self):
         if self._auto_write:
             self.write()
 
@@ -241,9 +248,9 @@ class Animations:
     def bounce2(self, colors, background=BLK, pause: int = 20, always_lit: bool = False):
         _range = self._strip.range + self._strip.range[1:-1][::-1]
         for color in colors:
-            if not self.is_enabled:
-                return
             for idx in _range:
+                if not self.is_enabled:
+                    return
                 self._strip[idx] = color
                 self._strip.write()
                 if not always_lit:
@@ -265,9 +272,9 @@ class Animations:
         else:
             _range = self._strip.range[::-1]
         for color in colors:
-            if not self.is_enabled:
-                return
             for idx in _range:
+                if not self.is_enabled:
+                    return
                 self._strip[idx] = color
                 self._strip.write()
                 if not always_lit:
