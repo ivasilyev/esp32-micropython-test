@@ -348,15 +348,15 @@ class AnimationController:
         self._current_animation = animation_name
         self._current_animation_args = args
         self._current_animation_kwargs = kwargs
-        self.is_running = True
-        self._animations.stop()
-        self.restart()
         args_string = ", ".join(str(i) for i in [animation_name, args, kwargs])
         if args_string == self._animations.state.get("current_animation_args"):
             print("The animation parameters were already set")
             return
         print("Change animation to:", animation_name, args, kwargs)
         self._animations.state["current_animation_args"] = args_string
+        self.is_running = True
+        self._animations.stop()
+        self.restart()
 
     def run(self):
         while True:

@@ -5,8 +5,10 @@
 #webrepl.start()
 
 from utils import Utils
+from main import main
 
 cfg_dict = Utils.read_json("config.json")
 Utils.wlan_connect(wlan_essid=cfg_dict["network"]["wlan"]["ssid"],
                    wlan_password=cfg_dict["network"]["wlan"]["password"],
                    hostname="esp32")
+main()
