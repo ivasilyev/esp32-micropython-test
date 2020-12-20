@@ -47,21 +47,8 @@ function draw_error(element_id, error_description) {
     document.getElementById(element_id).innerHTML = error_description;
 }
 
-function validateColor(hex) {
-    return (hex.startsWith('#') && hex.length === 7);
-}
-
-function validate_animation(animation_name, element_id) {
-    if (!ANIMATIONS.includes(animation_name)) {
-        alert('Please choose an animation!');
-        //draw_error(element_id, 'Please choose an animation!');
-        return false;
-    }
-    return true;
-}
-
 class App {
-    DEFAULT_STATE = {animation: "", color_transitions: 10, always_lit: false,
+    DEFAULT_STATE = {animation: "", color_transitions: 10, pause: 10, always_lit: false,
                       colors: {color_0: "#f5647f", color_1: "#7cc4e4"}};
     DEFAULT_COLOR = '#000000';
 
@@ -131,12 +118,33 @@ class App {
         }
     }
 
+    validateColor(hex) {
+        return hex !== null && hex.startsWith('#') && hex.length === 7;
+    }
+
+    validateAnimation() {
+        const b = ANIMATIONS.includes(document.getElementById('animation_dropdown').value);
+        if (!b) alert('Please choose an animation!');
+        return b;
+    }
+
     validateTransitionNumber() {
         const transitionsNumber = parseInt(transitionSlider.value);
-        if (transitionsNumber >= 2 || transitionsNumber <= 22) {
+        if (transitionsNumber >= transitionSlider.min || transitionsNumber <= transitionSlider.max) {
             this.state.color_transitions = transitionsNumber;
             return true;
         }
+        alert('Wrong color shade number!');
+        return false;
+    }
+
+    validatePause() {
+        const pause = parseInt(delaySlider.value);
+        if (pause >= delaySlider.min || pause <= delaySlider.max) {
+            this.state.pause = pause;
+            return true;
+        }
+        alert('Wrong switching delay!');
         return false;
     }
 
@@ -148,20 +156,23 @@ class App {
     validateFormOnSubmit() {
         let validations = [];
         let animation = animationDropdown.value;
-        validations.push(validate_animation(animation, 'animation_dropdown'));
+        validations.push(this.validateAnimation());
 
         let colors = {};
 
         Object.keys(this.state.colors).forEach((id) => {
-            let color = document.getElementById(id);
-            if (color !== null) {
-                color = color.value;
-                validations.push(validateColor(color));
-                colors[id] = color;
+            let element = document.getElementById(id);
+            if (element !== null) {
+                let color = element.value;
+                if (this.validateColor(color)) {
+                    validations.push();
+                    colors[id] = color;
+                }
             }
         });
 
         validations.push(this.validateTransitionNumber());
+        validations.push(this.validatePause());
         validations.push(this.validateAlwaysLitCheckbox());
 
         if (validations.every((x) => {
@@ -172,6 +183,7 @@ class App {
                 animation: animation,
                 color_transitions: this.state.color_transitions,
                 always_lit: this.state.always_lit,
+                pause: this.state.pause,
             };
             console.log(out);
             localStorage.setItem('animation_data', JSON.stringify(out));
@@ -211,6 +223,11 @@ animationDropdown.addEventListener(
 const transitionSlider = document.getElementById('range__shades');
 const transitionInput = document.getElementById('input__shades');
 transitionInput.value = transitionSlider.value;
-
-transitionSlider.oninput = () => transitionInput.value = transitionSlider.value;
 transitionInput.oninput = () => transitionSlider.value = transitionInput.value;
+transitionSlider.oninput = () => transitionInput.value = transitionSlider.value;
+
+const delaySlider = document.getElementById('range__delay');
+const delayInput = document.getElementById('input__delay');
+delayInput.value = delaySlider.value;
+delayInput.oninput = () => delaySlider.value = delayInput.value;
+delaySlider.oninput = () => delayInput.value = delaySlider.value;
