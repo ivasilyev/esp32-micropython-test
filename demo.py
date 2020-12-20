@@ -345,16 +345,19 @@ class AnimationController:
         if animation_name not in dir(self._animations):
             print("No such animation:", animation_name)
             return
-        self._current_animation = animation_name
-        self._current_animation_args = args
-        self._current_animation_kwargs = kwargs
         args_string = ", ".join(str(i) for i in [animation_name, args, kwargs])
         if args_string == self._animations.state.get("current_animation_args"):
             print("The animation parameters were already set")
             return
         print("Change animation to:", animation_name, args, kwargs)
         self._animations.state["current_animation_args"] = args_string
+        if "brightness" in kwargs:
+            self._strip.brightness = kwargs["brightness"]
+            del kwargs["brightness"]
         self.is_running = True
+        self._current_animation = animation_name
+        self._current_animation_args = args
+        self._current_animation_kwargs = kwargs
         self._animations.stop()
         self.restart()
 
@@ -366,4 +369,8 @@ class AnimationController:
                 getattr(self._animations, self._current_animation)(
                     *self._current_animation_args, **self._current_animation_kwargs)
             except StripIsNotReadyThrowable:
+                collect()
+            except Exception as e:
+                print("Caught general exception in AnimationController:", e)
+                sleep_ms(100)
                 collect()

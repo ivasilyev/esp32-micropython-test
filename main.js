@@ -48,8 +48,7 @@ function draw_error(element_id, error_description) {
 }
 
 class App {
-    DEFAULT_STATE = {animation: "", color_transitions: 10, pause: 10, always_lit: false,
-                      colors: {color_0: "#f5647f", color_1: "#7cc4e4"}};
+    DEFAULT_STATE = {animation: "", color_transitions: 10, brightness: 1, pause: 10, always_lit: false, colors: {color_0: "#f5647f", color_1: "#7cc4e4"}};
     DEFAULT_COLOR = '#000000';
 
     constructor() {
@@ -142,9 +141,19 @@ class App {
         return false;
     }
 
+    validateBrightness() {
+        const brightness = parseInt(brightnessSlider.value);
+        if (brightness >= parseInt(brightnessSlider.min) || brightness <= parseInt(brightnessSlider.max)) {
+            this.state.brightness = brightness.toFixed(2) / 100;
+            return true;
+        }
+        alert('Wrong brightness!');
+        return false;
+    }
+
     validatePause() {
         const pause = parseInt(delaySlider.value);
-        if (pause >= delaySlider.min || pause <= delaySlider.max) {
+        if (pause >= parseInt(delaySlider.min) || pause <= parseInt(delaySlider.max)) {
             this.state.pause = pause;
             return true;
         }
@@ -176,6 +185,7 @@ class App {
         });
 
         validations.push(this.validateTransitionNumber());
+        validations.push(this.validateBrightness());
         validations.push(this.validatePause());
         validations.push(this.validateAlwaysLitCheckbox());
 
@@ -188,6 +198,7 @@ class App {
                 color_transitions: this.state.color_transitions,
                 always_lit: this.state.always_lit,
                 pause: this.state.pause,
+                brightness: this.state.brightness,
             };
             console.log(out);
             localStorage.setItem('animation_data', JSON.stringify(out));
@@ -233,6 +244,12 @@ const transitionInput = document.getElementById('input__shades');
 transitionInput.value = transitionSlider.value;
 transitionInput.oninput = () => transitionSlider.value = transitionInput.value;
 transitionSlider.oninput = () => transitionInput.value = transitionSlider.value;
+
+const brightnessSlider = document.getElementById('range__brightness');
+const brightnessInput = document.getElementById('input__brightness');
+brightnessInput.value = brightnessSlider.value;
+brightnessInput.oninput = () => brightnessSlider.value = brightnessInput.value;
+brightnessSlider.oninput = () => brightnessInput.value = brightnessSlider.value;
 
 const delaySlider = document.getElementById('range__delay');
 const delayInput = document.getElementById('input__delay');

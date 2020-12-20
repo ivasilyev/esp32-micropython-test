@@ -95,18 +95,21 @@ class HTTPServer:
             d = loads(Utils.parse_percent_encoding(j))
         except:
             return
+        if "colors" not in d.keys():
+            return
         self.state.update(d)
         kwargs = dict()
-        if "colors" in d.keys():
-            self.state["colors"] = OrderedDict(sorted(d["colors"].items()))
-            colors = [ColorManager.convert_hex_to_rgb(i) for i in self.state["colors"].values()]
-            kwargs["colors"] = ColorManager.create_color_loop(
-                colors, steps=self.state["color_transitions"])
-            if self.state["always_lit"]:
-                kwargs["always_lit"] = self.state["always_lit"]
-            if self.state["pause"]:
-                kwargs["pause"] = self.state["pause"]
-            self._controller.set_animation(self.state["animation"], **kwargs)
+        self.state["colors"] = OrderedDict(sorted(d["colors"].items()))
+        colors = [ColorManager.convert_hex_to_rgb(i) for i in self.state["colors"].values()]
+        kwargs["colors"] = ColorManager.create_color_loop(
+            colors, steps=self.state["color_transitions"])
+        if self.state["always_lit"]:
+            kwargs["always_lit"] = self.state["always_lit"]
+        if "pause" in self.state.keys():
+            kwargs["pause"] = self.state["pause"]
+        if "brightness" in self.state.keys():
+            kwargs["brightness"] = self.state["brightness"]
+        self._controller.set_animation(self.state["animation"], **kwargs)
 
     def handle_http(self, conn):
         data = b""
@@ -175,6 +178,6 @@ class HTTPServer:
                 self.response()
                 collect()
             except Exception as e:
-                print(e)
-                sleep_ms(2000)
-                raise
+                print("Caught general exception in HTTPServer:", e)
+                sleep_ms(100)
+                # raise
