@@ -82,6 +82,10 @@ class App {
             this.render();
         }
     }
+
+    reset() {
+        this.setState(this.DEFAULT_STATE)
+    }
     
     makeColorPicker(number, color = this.DEFAULT_COLOR) {
         const div = document.getElementById('color_selector');
@@ -202,6 +206,10 @@ if (form) {
 document.getElementById('button__submit').addEventListener(
     'click', function(e) {
         app.validateFormOnSubmit();
+    });
+document.getElementById('button__reset').addEventListener(
+    'click', function(e) {
+        app.reset();
     });
 document.getElementById('button__push_color').addEventListener(
     'click', function(e) {
