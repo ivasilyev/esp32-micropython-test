@@ -104,6 +104,8 @@ class HTTPServer:
                 colors, steps=self.state["color_transitions"])
             if self.state["always_lit"]:
                 kwargs["always_lit"] = self.state["always_lit"]
+            if self.state["pause"]:
+                kwargs["pause"] = self.state["pause"]
             self._controller.set_animation(self.state["animation"], **kwargs)
 
     def handle_http(self, conn):

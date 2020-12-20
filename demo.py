@@ -149,9 +149,9 @@ class Strip(NeoPixel):
         super().fill(BLK)
         super().write()
 
-    def reset(self):
+    def reset(self, pause: int = 100):
         self.is_enabled = False
-        sleep_ms(100)  # Otherwise the translator does not even notice that
+        sleep_ms(pause)  # Otherwise the translator does not even notice that
         self.is_enabled = True
         self.blacken()
         collect()
@@ -329,13 +329,17 @@ class AnimationController:
         self._current_animation_kwargs = dict()
 
     def restart(self):
+        pause = 100
+        pause_ = self._current_animation_kwargs.get("pause")
+        if pause_ is not None and pause_ > pause:
+            pause = pause_
         try:
-            self._strip.reset()
+            self._strip.reset(pause)
         except StripIsNotReadyThrowable:
             pass
         except Exception as e:
             print("Animation restart problem:", e)
-        sleep_ms(150)
+        sleep_ms(pause)
 
     def set_animation(self, animation_name: str, *args, **kwargs):
         if animation_name not in dir(self._animations):
@@ -346,6 +350,7 @@ class AnimationController:
         self._current_animation_kwargs = kwargs
         self.is_running = True
         self._animations.stop()
+        self.restart()
         args_string = ", ".join(str(i) for i in [animation_name, args, kwargs])
         if args_string == self._animations.state.get("current_animation_args"):
             print("The animation parameters were already set")
