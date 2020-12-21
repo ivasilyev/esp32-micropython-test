@@ -5,7 +5,7 @@ Man, there was 2020 already, I supposed that it's better to pay extra $2 for one
 and get even more fun.
 So I got my new `ESP-WROOM-32` with 38 contacts onboard. 
 And then it filled up my breadboard, leaving only a single row of contacts.
-Was I mocked? Probably, yet let'start this.
+Was I mocked? Probably, yet let me explain thoughtfully.
 
 # Installation
 I've just plugged in micro USB and the ESP32 ready on the COM5 port. 
@@ -48,9 +48,18 @@ Chip erase completed successfully in 3.2s
 Hard resetting via RTS pin...
 ```
 ## Get & flash the ESP32 no-SPIRAM MicroPython firmware
+#### ESP-IDF v3.x
 
 ```shell script
 curl -fsSL https://micropython.org/resources/firmware/esp32-idf3-20200902-v1.13.bin -o ../micropython.bin
+
+python esptool.py --chip esp32 --port COM5 --baud 460800 write_flash --flash_size=detect -z 0x1000 ../micropython.bin
+```
+
+#### ESP-IDF v4.x
+
+```shell script
+curl -fsSL https://micropython.org/resources/firmware/esp32-idf4-20200902-v1.13.bin -o ../micropython.bin
 
 python esptool.py --chip esp32 --port COM5 --baud 460800 write_flash --flash_size=detect -z 0x1000 ../micropython.bin
 ```
@@ -153,3 +162,28 @@ epc1=0x4005919c, epc2=0x00000000, epc3=0x00000000, excvaddr=0x4004c247, depc=0x0
 ```
 It means that the firmware is not working.
 
+# Diodes?
+
+Call me a beginner, originally it was not much more than a sort of implementation of standard 
+Arduino Hello World project, `blink.ino`. We're not looking for easy ways, are we?
+
+# Why putting it into the small fir light toy?
+The idea of using the plastic cone of the light fir toy as a deflector has come spontaneously when 
+I saw it lying alone with dead batteries in a bookshelf:
+![Toy top](./.github/cone1.png)
+![Toy inside](./.github/cone2.png)
+
+Its single 2Pin F8 RGB LED was alive, so I used it in my another decorative project 
+(no software, only soldering).
+
+# And the project scheme?
+Here it is:
+![Scheme](./.github/scheme.png)
+
+
+# Synopsis?
+As on the scheme, a client-side HTML5 web page, JS app (I've broke CSS unfortunately) and `GET` 
+queries. The rest is processed on the ESP32 even if it was not a good idea.
+ 
+# Did you have fun?
+Sure, the new year is coming.
