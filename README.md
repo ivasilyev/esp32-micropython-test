@@ -7,6 +7,9 @@ So I got my new `ESP-WROOM-32` with 38 contacts onboard.
 And then it filled up my breadboard, leaving only a single row of contacts.
 Was I mocked? Probably, yet let me explain thoughtfully.
 
+# tl;dr
+Here is the [Youtube video](https://www.youtube.com/watch?v=hiotUjhchYY).
+
 # Installation
 I've just plugged in micro USB and the ESP32 ready on the COM5 port. 
 No external power source was attached, I mean, excepting the one leading to my USB3 hub where the 
